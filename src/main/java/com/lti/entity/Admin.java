@@ -16,35 +16,35 @@ public class Admin {
 	@SequenceGenerator(name = "adm_seq", initialValue = 1, allocationSize = 1)
 	@GeneratedValue(generator = "adm_seq", strategy = GenerationType.SEQUENCE)
 	@Column(name = "admin_login_id")
-	private int id;
+	private int adminId;
 
 	@Column(name = "admin_password")
-	private String password;
+	private String adminPassword;
 
 	@Column(name = "admin_name")
-	private String name;
+	private String adminName;
 
-	public int getId() {
-		return id;
+	public int getAdminId() {
+		return adminId;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setId(int adminId) {
+		this.adminId = adminId;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getAdminPassword() {
+		return adminPassword;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setAdminPassword(String adminPassword) {
+		this.adminPassword = adminPassword;
 	}
 
-	public String getName() {
-		return name;
+	public String getAdminName() {
+		return adminName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setName(String adminName) {
+		this.adminName = adminName;
 	}
 }

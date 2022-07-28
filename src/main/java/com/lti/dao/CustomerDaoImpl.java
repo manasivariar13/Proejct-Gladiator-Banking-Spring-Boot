@@ -11,10 +11,13 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import com.lti.entity.Account;
+import com.lti.entity.AccountStatus;
+import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
+import com.lti.entity.User;
 
 @Component
 public class CustomerDaoImpl implements CustomerDao {
@@ -25,6 +28,8 @@ public class CustomerDaoImpl implements CustomerDao {
 	@Transactional
 	public Customer openAccount(Customer customer) {
 		em.persist(customer);
+		em.persist(customer.getAddress());
+		em.persist(customer.getIncome());
 		return customer;
 	}
 
@@ -72,6 +77,7 @@ public class CustomerDaoImpl implements CustomerDao {
 		return beneficiary;
 	}
 
+	@Transactional
 	public List<Beneficiary> viewAllBeneficiaries(int accountNumber) {
 		String jpql = "select b from Beneficiary b where b.customerAccountNumber=:accNo";
 //		String jpql = "select u from Customer c where c.userId=:cid and c.password=:pwd";
@@ -90,6 +96,7 @@ public class CustomerDaoImpl implements CustomerDao {
 		em.remove(beneficiary);
 	}
 
+	@Transactional
 	public Beneficiary findBeneficiaryById(int beneficiaryId) {
 		return em.find(Beneficiary.class, beneficiaryId);
 	}
@@ -127,14 +134,83 @@ public class CustomerDaoImpl implements CustomerDao {
 	}
 
 	@Transactional
-	public boolean login(int customerId, String password) {
-		String jpql = "select c from Customer c where c.custId=:cid and c.customerPassword=:pwd";
+	public User login(int userId, String password) {
+		String jpql = "select u from User u where u.userId=:uid and u.loginPassword=:pwd";
 
-		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
-		query.setParameter("cid", customerId);
+		TypedQuery<User> query = em.createQuery(jpql, User.class);
+		query.setParameter("uid", userId);
 		query.setParameter("pwd", password);
 
-		Customer customer = query.getSingleResult();
-		return customer != null ? true : false;
+		User user = query.getSingleResult();
+		return user;
+	}
+
+	@Transactional
+	public String signup(User user) {
+//		User u = em.merge(user);
+		em.persist(user);
+		em.flush();
+		return String.valueOf(user.getUserId());
+	}
+
+//	@Transactional
+//	public boolean adminExists(int adminId) {
+//		String jpql = "select count(a.adminId) from Admin a where a.adminId = :adminId";
+//		return (int) em.createQuery(jpql).setParameter("adminId", adminId).getSingleResult() == 1 ? true : false;
+//	}
+
+	@Transactional
+	public boolean adminLogin(int adminId, String adminPassword) {
+		System.out.println(adminId + " " + adminPassword);
+		String jpql = "select a from Admin a where a.adminId=:aid and a.adminPassword=:pwd";
+
+		TypedQuery<Admin> query = em.createQuery(jpql, Admin.class);
+		query.setParameter("aid", adminId);
+		query.setParameter("pwd", adminPassword);
+
+		Admin admin;
+
+		try {
+			admin = query.getSingleResult();
+			return admin != null ? true : false;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+//			e.printStackTrace();
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+	}
+
+	@Transactional
+	public Admin addAdmin() {
+		Admin admin = new Admin();
+		admin.setAdminPassword("test123");
+		admin.setName("Ashwith");
+
+		em.persist(admin);
+		return admin;
+	}
+
+	@Transactional
+	public List<Customer> pendingRequest() {
+		String jpql = "select c from Customer c where c.accountStatus=:acSt";
+		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
+		query.setParameter("acSt", AccountStatus.Pending);
+		return query.getResultList();
+	}
+
+	@Transactional
+	public void updatePendingRequest(int customerId, String response) {
+		String jpql = "update Customer c set c.accountStatus=:accSt where c.custId=:cId";
+		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
+		query.setParameter("accSt", response);
+		query.setParameter("cId", customerId);
+
+		Customer cust = query.getSingleResult();
+		Account acc = new Account();
+		acc.setCustomer(cust);
+
+		em.persist(acc);
 	}
 }

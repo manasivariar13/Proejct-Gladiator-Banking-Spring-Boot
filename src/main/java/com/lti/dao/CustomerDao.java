@@ -1,11 +1,13 @@
-	package com.lti.dao;
+package com.lti.dao;
 
 import java.util.List;
 
 import com.lti.entity.Account;
+import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
+import com.lti.entity.User;
 
 public interface CustomerDao {
 
@@ -25,7 +27,9 @@ public interface CustomerDao {
 
 	Customer addOrUpdateCustomer(Customer customer);
 
-	boolean login(int customerId, String password);
+	User login(int userId, String password);
+
+	String signup(User user);
 
 	Beneficiary addBeneficiary(Beneficiary beneficiary);
 
@@ -34,5 +38,15 @@ public interface CustomerDao {
 	Beneficiary findBeneficiaryById(int beneficiaryId);
 
 	void deleteBeneficiary(int beneficiaryId);
+
+//	boolean adminExists(int adminId);
+
+	public Admin addAdmin();
+
+	boolean adminLogin(int adminId, String adminPassword);
+
+	List<Customer> pendingRequest();
+
+	void updatePendingRequest(int customerId, String response);
 
 }

@@ -1,5 +1,6 @@
 package com.lti.controller;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,12 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+import com.lti.dto.FundTransferDto;
+import com.lti.dto.LoginDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
+import com.lti.entity.User;
 import com.lti.service.CustomerService;
 
 @RestController
@@ -58,9 +63,11 @@ public class CustomerController {
 	@PostMapping(value = "/openAccount")
 	public String openAccount(@RequestBody Customer customer) {
 //		return customer.getAadhaarNo();
-//		System.out.print("Hiiiiiiiiiii");
-//		System.out.print(customer);
-		return customerService.openAccount(customer);
+		System.out.print("Hiiiiiiiiiii");
+		System.out.print(customer.getEmailId());
+//		return customer.get("emailId");
+		return "Test";
+//		return customerService.openAccount(customer);
 	}
 
 	@GetMapping(value = "/accountSummary/{accountNumber}")
@@ -73,24 +80,29 @@ public class CustomerController {
 		return customerService.findTopFiveTransactions(accountNumber);
 	}
 
+	@GetMapping(value = "/isCustomerExists/{accountNumber}")
+	public boolean isCustomerExists(@PathVariable int accountNumber) {
+		return customerService.isCustomerExists(accountNumber);
+	}
+
 	@GetMapping(value = "/accountStatement/{accountNumber}")
 	public List<TopFiveTransactionDto> accountStatement(@PathVariable int accountNumber) {
 		return customerService.accountStatement(accountNumber);
 	}
 
 	@PostMapping(value = "/fundTransfer")
-	public String fundTransfer(@RequestBody Account fromAccount, Account toAccount, double amount) {
-		return customerService.fundTransfer(fromAccount, toAccount, amount);
+	public String fundTransfer(@RequestBody FundTransferDto ftDto) {
+		return customerService.fundTransfer(ftDto.getFromAccount(), ftDto.getToAccount(), ftDto.getAmount());
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST)
-	public String signup(@RequestBody Customer customer) {
-		return customerService.signup(customer);
+	public String signup(@RequestBody User user) {
+		return customerService.signup(user);
 	}
 
-	@PostMapping("/login")
-	public boolean login(@RequestBody int customerId, String password) {
-		return customerService.login(customerId, password);
+	@PostMapping(value = "/login")
+	public User login(@RequestBody LoginDto loginDto) {
+		return customerService.login(loginDto.getUserId(), loginDto.getLoginPassword());
 	}
 
 }

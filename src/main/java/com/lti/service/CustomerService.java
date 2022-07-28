@@ -7,9 +7,11 @@ import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
+import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
+import com.lti.entity.User;
 
 public interface CustomerService {
 
@@ -23,9 +25,11 @@ public interface CustomerService {
 
 	List<TopFiveTransactionDto> findTopFiveTransactions(int accNo);
 
-	String signup(Customer customer);
+	boolean isCustomerExists(int accountNumber);
 
-	boolean login(int customerId, String password);
+	String signup(User user);
+
+	User login(int userId, String password);
 
 //	Account services 
 
@@ -36,5 +40,14 @@ public interface CustomerService {
 	List<TopFiveTransactionDto> accountStatement(int accountNumber);
 
 	String fundTransfer(Account fromAccount, Account toAccount, double amount);
-
+	
+	boolean adminLogin(int adminId, String adminPassword);
+	
+	List<Customer> pendingRequest();
+	
+	public Admin addAdmin();
+	
+	void updatePendingRequests(int customerId, String response);
+	
+	
 }

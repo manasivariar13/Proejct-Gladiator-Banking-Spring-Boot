@@ -30,7 +30,7 @@ public class Account {
 	@Column(name = "account_number")
 	private int accountNumber;
 
-	private String transactionPassword;
+//	private String transactionPassword;
 
 	@Enumerated(EnumType.STRING)
 	AccountType accountType;
@@ -47,13 +47,13 @@ public class Account {
 
 	private double balance;
 
-	public String getTransactionPassword() {
-		return transactionPassword;
-	}
-
-	public void setTransactionPassword(String transactionPassword) {
-		this.transactionPassword = transactionPassword;
-	}
+//	public String getTransactionPassword() {
+//		return transactionPassword;
+//	}
+//
+//	public void setTransactionPassword(String transactionPassword) {
+//		this.transactionPassword = transactionPassword;
+//	}
 
 	public List<Beneficiary> getBeneficiaries() {
 		return beneficiaries;

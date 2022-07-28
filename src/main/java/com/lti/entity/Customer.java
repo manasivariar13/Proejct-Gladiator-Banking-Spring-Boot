@@ -16,6 +16,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "table_customer")
 
@@ -26,12 +28,13 @@ public class Customer {
 	@Column(name = "customer_id")
 	private int custId;
 
+	@Column(name = "login_password")
 	private String customerPassword;
 
 	Gender gender;
 
 	@Column(name = "name")
-	private String Name;
+	private String name;
 
 	@Column(name = "mobile_no")
 	private String mobileNo;
@@ -50,22 +53,25 @@ public class Customer {
 
 	AccountStatus accountStatus;
 
-	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
-	private Address Address;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name  = "address_id")
+	private Address address;
 
-	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-	private List<Account> account;
+//	@OneToMany(cascade = CascadeType.ALL)
+//	@JoinColumn(name = "account")
+//	private List<Account> account;
 
-	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "income_id")
 	private Income income;
 
-	public List<Account> getAccount() {
-		return account;
-	}
-
-	public void setAccount(List<Account> account) {
-		this.account = account;
-	}
+//	public List<Account> getAccount() {
+//		return account;
+//	}
+//
+//	public void setAccount(List<Account> account) {
+//		this.account = account;
+//	}
 
 	public Income getIncome() {
 		return income;
@@ -75,13 +81,13 @@ public class Customer {
 		this.income = income;
 	}
 
-	public String getCustomerPassword() {
-		return customerPassword;
-	}
-
-	public void setCustomerPassword(String customerPassword) {
-		this.customerPassword = customerPassword;
-	}
+//	public String getCustomerPassword() {
+//		return customerPassword;
+//	}
+//
+//	public void setCustomerPassword(String customerPassword) {
+//		this.customerPassword = customerPassword;
+//	}
 
 	public AccountStatus getAccountStatus() {
 		return accountStatus;
@@ -108,11 +114,11 @@ public class Customer {
 	}
 
 	public String getName() {
-		return Name;
+		return name;
 	}
 
 	public void setName(String name) {
-		Name = name;
+		this.name = name;
 	}
 
 	public String getMobileNo() {
@@ -156,11 +162,11 @@ public class Customer {
 	}
 
 	public Address getAddress() {
-		return Address;
+		return address;
 	}
 
 	public void setAddress(Address address) {
-		Address = address;
+		this.address = address;
 	}
 
 }

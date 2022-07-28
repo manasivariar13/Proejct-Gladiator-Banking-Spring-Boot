@@ -33,9 +33,9 @@ public class Address {
 
 	private String city;
 
-	@OneToOne
-	@JoinColumn(name = "customer_id")
-	private Customer customer;
+//	@OneToOne
+//	@JoinColumn(name = "customer_id")
+//	private Customer customer;
 
 	@Column(name = "pincode")
 	private int pincode;

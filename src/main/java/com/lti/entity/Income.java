@@ -20,12 +20,12 @@ public class Income {
 	private int incomeId;
 
 	private String occupationType;
-	private String IncomeSource;
+	private String incomeSource;
 	private double grossIncome;
 
-	@OneToOne
-	@JoinColumn(name = "customer_id")
-	private Customer customer;
+//	@OneToOne
+//	@JoinColumn(name = "customer_id")
+//	private Customer customer;
 
 	public int getIncomeId() {
 		return incomeId;
@@ -44,11 +44,11 @@ public class Income {
 	}
 
 	public String getIncomeSource() {
-		return IncomeSource;
+		return incomeSource;
 	}
 
 	public void setIncomeSource(String incomeSource) {
-		IncomeSource = incomeSource;
+		this.incomeSource = incomeSource;
 	}
 
 	public double getGrossIncome() {
@@ -59,12 +59,12 @@ public class Income {
 		this.grossIncome = grossIncome;
 	}
 
-	public Customer getCustomer() {
-		return customer;
-	}
-
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
-	}
+//	public Customer getCustomer() {
+//		return customer;
+//	}
+//
+//	public void setCustomer(Customer customer) {
+//		this.customer = customer;
+//	}
 
 }

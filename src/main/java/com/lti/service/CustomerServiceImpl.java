@@ -12,11 +12,14 @@ import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
+import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
+import com.lti.entity.User;
 import com.lti.exception.InsufficientFundsException;
 import com.lti.exception.MinimumAmountException;
+import com.lti.exception.ServiceException;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -119,6 +122,13 @@ public class CustomerServiceImpl implements CustomerService {
 
 	}
 
+	public boolean isCustomerExists(int accountNumber) {
+		if (dao.isCustomerExists(accountNumber)) {
+			return true;
+		}
+		return false;
+	}
+
 	public AccountSummaryDto accountSummary(int accountNumber) {
 		AccountSummaryDto accSummDto = new AccountSummaryDto();
 		Account acc = new Account();
@@ -151,6 +161,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 	public String fundTransfer(Account fromAccount, Account toAccount, double amount) {
 		try {
+			fromAccount = dao.accountSummary(fromAccount.getAccountNumber());
+			toAccount = dao.accountSummary(toAccount.getAccountNumber());
 			if (amount < 100) {
 				throw new MinimumAmountException("Amount must be greater than 100");
 //				return "Amount must be minimum 100";
@@ -166,17 +178,40 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 	}
 
-	public String signup(Customer customer) {
+	public String signup(User user) {
 		try {
-			Customer customer2 = dao.addOrUpdateCustomer(customer);
-			return "Sign up successful. Your userId is: " + customer2.getCustId();
+//			Customer customer2 = dao.addOrUpdateCustomer(customer);
+			String userId = dao.signup(user);
+			return "Sign up successful. Your userId is: " + userId;
 		} catch (Exception e) {
-			return "Unexpected error occured. Sign up failed.";
+			return e.getMessage();
+//			return "Unexpected error occured. Sign up failed.";
 		}
 	}
 
-	public boolean login(int customerId, String password) {
-		return dao.login(customerId, password);
+	public User login(int userId, String password) {
+		return dao.login(userId, password);
+	}
+
+	public boolean adminLogin(int adminId, String adminPassword) {
+		return dao.adminLogin(adminId, adminPassword);
+	}
+	
+	public Admin addAdmin() {
+		return dao.addAdmin();
+	}
+
+	public List<Customer> pendingRequest() {
+		return dao.pendingRequest();
+//		if (dao.pendingRequest().size() >= 1) {
+//			return dao.pendingRequest();
+//		} else {
+//			throw new ServiceException("No pending requests.");
+//		}
+	}
+
+	public void updatePendingRequests(int customerId, String response) {
+		dao.updatePendingRequest(customerId, response);
 	}
 
 }
