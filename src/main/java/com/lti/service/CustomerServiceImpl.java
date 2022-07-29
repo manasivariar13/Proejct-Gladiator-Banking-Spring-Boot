@@ -9,12 +9,15 @@ import org.springframework.stereotype.Service;
 import com.lti.dao.CustomerDao;
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+import com.lti.dto.CustomerDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
+import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
+import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.User;
 import com.lti.exception.InsufficientFundsException;
@@ -90,17 +93,17 @@ public class CustomerServiceImpl implements CustomerService {
 
 //	Account service implementations
 
-	public String openAccount(Customer customer) {
+	public int openAccount(CustomerDto customerDto) {
 //		System.out.print(customer.getEmailId());
 		try {
-			Customer cust = dao.openAccount(customer);
-			return "Registration has been initiated. We'll let you know the Account status soon. Your customer ID: "
-					+ cust.getCustId();
+			Customer cust = dao.openAccount(customerDto);
+			return cust.getCustId();
 		} catch (Exception e) {
-			return e.getMessage();
+			throw new ServiceException("Something went wrong.");
 //			return "Unexpected error occured. Account Registration failed.";
 		}
 	}
+	
 
 	public List<TopFiveTransactionDto> findTopFiveTransactions(int accountNumber) {
 		List<TopFiveTransactionDto> topTrans = new ArrayList<>();
@@ -213,5 +216,6 @@ public class CustomerServiceImpl implements CustomerService {
 	public String updatePendingRequests(int customerId, String response) {
 		return dao.updatePendingRequest(customerId, response);
 	}
+
 
 }

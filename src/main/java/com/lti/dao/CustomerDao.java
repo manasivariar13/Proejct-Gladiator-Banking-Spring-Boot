@@ -2,16 +2,19 @@ package com.lti.dao;
 
 import java.util.List;
 
+import com.lti.dto.CustomerDto;
 import com.lti.entity.Account;
+import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
+import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.User;
 
 public interface CustomerDao {
 
-	Customer openAccount(Customer customer);
+	Customer openAccount(CustomerDto customerDto);
 
 	Account accountSummary(int accountNumber);
 

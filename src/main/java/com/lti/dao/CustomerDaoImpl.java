@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Component;
 
+import com.lti.dto.CustomerDto;
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
 import com.lti.entity.AccountType;
@@ -30,26 +31,67 @@ public class CustomerDaoImpl implements CustomerDao {
 	@PersistenceContext
 	EntityManager em;
 
+//	@Transactional
+//	public Customer openAccount(Customer customer) {
+//		Customer cust = em.merge(customer);
+//		return cust;
+//
+////		Account acc = new Account();
+////		acc.setCustomer(cust);
+////		acc.setType(AccountType.Savings);
+////		acc.setAccountStatus(AccountStatus.Pending);
+////		em.persist(acc);
+////
+////		Address address = new Address();
+////		address.setCustomer(cust);
+////		em.persist(address);
+////
+////		Income income = new Income();
+////		income.setCustomer(cust);
+////		em.persist(income);
+//
+//		
+//	}
+
 	@Transactional
-	public Customer openAccount(Customer customer) {
-		Customer cust = em.merge(customer);
-		return cust;
+	public Customer openAccount(CustomerDto customerDto) {
 
-//		Account acc = new Account();
-//		acc.setCustomer(cust);
-//		acc.setType(AccountType.Savings);
-//		acc.setAccountStatus(AccountStatus.Pending);
-//		em.persist(acc);
-//
-//		Address address = new Address();
-//		address.setCustomer(cust);
-//		em.persist(address);
-//
-//		Income income = new Income();
-//		income.setCustomer(cust);
-//		em.persist(income);
-
-		
+		try {
+			Customer customer = new Customer();
+			customer.setName(customerDto.getName());
+			customer.setAadhaarNo(customerDto.getAadhaarNo());
+			customer.setMobileNo(customerDto.getMobileNo());
+			customer.setGender(customerDto.getGender());
+			customer.setDateOfBirth(customerDto.getDateOfBirth());
+			customer.setPanCardNo(customerDto.getPanCardNo());
+			customer.setEmailId(customerDto.getEmailId());
+			Customer cust = em.merge(customer);
+			Address address = new Address();
+			address.setAddressLine1(customerDto.getAddressLine1());
+			address.setAddressLine2(customerDto.getAddressLine2());
+			address.setCity(customerDto.getCity());
+			address.setLandmark(customerDto.getLandmark());
+			address.setState(customerDto.getState());
+			address.setPincode(customerDto.getPincode());
+			address.setCustomer(cust);
+			Account account = new Account();
+			account.setAccountStatus(customerDto.getAccountStatus());
+			account.setAccountType(customerDto.getAccountType());
+			account.setBalance(customerDto.getBalance());
+			account.setCustomer(cust);
+			Income income = new Income();
+			income.setOccupationType(customerDto.getOccupationType());
+			income.setIncomeSource(customerDto.getIncomeSource());
+			income.setGrossIncome(customerDto.getGrossIncome());
+			income.setCustomer(cust);
+			em.merge(account);
+			em.merge(address);
+			em.merge(income);
+			return cust;
+		} catch (Exception e) {
+//			String customer2 = dao.openAccount(customer, account, income, address);
+			throw new ServiceException("Unexpected error occured.");
+		}
 	}
 
 	@Transactional
@@ -165,7 +207,7 @@ public class CustomerDaoImpl implements CustomerDao {
 			return user;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			throw new ServiceException("Invalid email/password");
+			throw new ServiceException("Invalid User ID/password");
 		}
 	}
 

@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+import com.lti.dto.CustomerDto;
 import com.lti.dto.FundTransferDto;
 import com.lti.dto.LoginDto;
+import com.lti.dto.OpenAccountDto;
 import com.lti.dto.SendAllBeneficiariesDto;
 import com.lti.dto.Status;
 import com.lti.dto.Status.StatusCode;
@@ -47,13 +49,13 @@ public class CustomerController {
 	public Status addBeneficiary(@RequestBody BeneficiaryAccountDto beneficiary) {
 		try {
 			customerService.addBeneficiary(beneficiary);
-			Status status=new Status();
+			Status status = new Status();
 			status.setStatusCode(StatusCode.SUCCESS);
 			status.setStatusMessage("Beneficiary Added Successfully");
 			return status;
-			
-		}catch (ServiceException e) {
-			
+
+		} catch (ServiceException e) {
+
 			Status status = new Status();
 			status.setStatusMessage(e.getMessage());
 			status.setStatusCode(StatusCode.FAILURE);
@@ -72,20 +74,20 @@ public class CustomerController {
 //		dto.setBeneficiaryDto(customerService.viewAllBeneficiaries(accNo));
 //
 //		return dto;
-		
-		try{
-			 List<ViewAllBeneficiariesDto> list= customerService.viewAllBeneficiaries(accNo);
-			 SendAllBeneficiariesDto status=new SendAllBeneficiariesDto();
-			 status.setBeneficiaryDto(list);
-			 status.setStatusCode(StatusCode.SUCCESS);
-			 status.setStatusMessage("Beneficiary Fetched Successfully");
-			 return status;
-		}catch (ServiceException e) {
-			SendAllBeneficiariesDto status=new SendAllBeneficiariesDto();
-			 status.setBeneficiaryDto(null);
-			 status.setStatusCode(StatusCode.FAILURE);
-			 status.setStatusMessage(e.getMessage());
-			 return status;
+
+		try {
+			List<ViewAllBeneficiariesDto> list = customerService.viewAllBeneficiaries(accNo);
+			SendAllBeneficiariesDto status = new SendAllBeneficiariesDto();
+			status.setBeneficiaryDto(list);
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("Beneficiary Fetched Successfully");
+			return status;
+		} catch (ServiceException e) {
+			SendAllBeneficiariesDto status = new SendAllBeneficiariesDto();
+			status.setBeneficiaryDto(null);
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
 		}
 	}
 
@@ -96,13 +98,22 @@ public class CustomerController {
 	}
 
 	@PostMapping(value = "/openAccount")
-	public String openAccount(@RequestBody Customer customer) {
-//		return customer.getAadhaarNo();
-//		System.out.print("Hiiiiiiiiiii");
-		System.out.print(customer.getEmailId());
-//		return customer.get("emailId");
-//		return "Test";
-		return customerService.openAccount(customer);
+	public OpenAccountDto openAccount(@RequestBody CustomerDto customerDto) {
+		try {
+			int custId = customerService.openAccount(customerDto);
+			OpenAccountDto dto = new OpenAccountDto();
+			dto.setStatusCode(StatusCode.SUCCESS);
+			dto.setStatusMessage("Registration Successful. Your customer ID is" + custId);
+			dto.setCustId(custId);
+			return dto;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			OpenAccountDto dto = new OpenAccountDto();
+			dto.setStatusCode(StatusCode.FAILURE);
+			dto.setStatusMessage(e.getMessage());
+			return dto;
+		}
 	}
 
 	@GetMapping(value = "/accountSummary/{accountNumber}")
@@ -146,8 +157,7 @@ public class CustomerController {
 			userLoginStatus.setUserId(user.getUserId());
 			userLoginStatus.setAccountNumber(String.valueOf(user.getAccountNumber()));
 			return userLoginStatus;
-		}
-		catch (ServiceException e) {
+		} catch (ServiceException e) {
 			UserLoginStatus userLoginStatus = new UserLoginStatus();
 			userLoginStatus.setStatusCode(StatusCode.FAILURE);
 			userLoginStatus.setStatusMessage(e.getMessage());
