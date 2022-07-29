@@ -1,5 +1,6 @@
 package com.lti.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,17 +16,21 @@ import javax.persistence.Table;
 public class Income {
 
 	@Id
-	@SequenceGenerator(name = "income_seq", initialValue = 601, allocationSize = 1)
+	@SequenceGenerator(name = "income_seq", initialValue = 901, allocationSize = 1)
 	@GeneratedValue(generator = "income_seq", strategy = GenerationType.SEQUENCE)
+	@Column(name="incomeid")
 	private int incomeId;
 
+	@Column(name="occupation_type")
 	private String occupationType;
+	@Column(name="income_source")
 	private String incomeSource;
+	@Column(name="gross_income")
 	private double grossIncome;
 
-//	@OneToOne
-//	@JoinColumn(name = "customer_id")
-//	private Customer customer;
+	@OneToOne
+	@JoinColumn(name = "customer_id")
+	private Customer customer;
 
 	public int getIncomeId() {
 		return incomeId;
@@ -59,12 +64,12 @@ public class Income {
 		this.grossIncome = grossIncome;
 	}
 
-//	public Customer getCustomer() {
-//		return customer;
-//	}
-//
-//	public void setCustomer(Customer customer) {
-//		this.customer = customer;
-//	}
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
 
 }

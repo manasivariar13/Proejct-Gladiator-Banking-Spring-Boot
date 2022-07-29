@@ -33,7 +33,11 @@ public class Account {
 //	private String transactionPassword;
 
 	@Enumerated(EnumType.STRING)
+	@Column(name = "account_type")
 	AccountType accountType;
+	
+	@Column(name="account_status")
+	private AccountStatus accountStatus;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "customer_id")
@@ -45,6 +49,7 @@ public class Account {
 	@OneToMany(mappedBy = "beneficiaryAccount")
 	List<Beneficiary> beneficiaries;
 
+	@Column(name = "balance")
 	private double balance;
 
 //	public String getTransactionPassword() {
@@ -54,9 +59,27 @@ public class Account {
 //	public void setTransactionPassword(String transactionPassword) {
 //		this.transactionPassword = transactionPassword;
 //	}
+	
+	
 
 	public List<Beneficiary> getBeneficiaries() {
 		return beneficiaries;
+	}
+
+	public AccountType getAccountType() {
+		return accountType;
+	}
+
+	public void setAccountType(AccountType accountType) {
+		this.accountType = accountType;
+	}
+
+	public AccountStatus getAccountStatus() {
+		return accountStatus;
+	}
+
+	public void setAccountStatus(AccountStatus accountStatus) {
+		this.accountStatus = accountStatus;
 	}
 
 	public void setBeneficiaries(List<Beneficiary> beneficiaries) {

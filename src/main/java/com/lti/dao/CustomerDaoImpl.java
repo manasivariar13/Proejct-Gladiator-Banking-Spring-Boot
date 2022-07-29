@@ -12,12 +12,17 @@ import org.springframework.stereotype.Component;
 
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
+import com.lti.entity.AccountType;
+import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
+import com.lti.entity.Gender;
+import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
 import com.lti.entity.User;
+import com.lti.exception.ServiceException;
 
 @Component
 public class CustomerDaoImpl implements CustomerDao {
@@ -27,10 +32,24 @@ public class CustomerDaoImpl implements CustomerDao {
 
 	@Transactional
 	public Customer openAccount(Customer customer) {
-		em.persist(customer);
-		em.persist(customer.getAddress());
-		em.persist(customer.getIncome());
-		return customer;
+		Customer cust = em.merge(customer);
+		return cust;
+
+//		Account acc = new Account();
+//		acc.setCustomer(cust);
+//		acc.setType(AccountType.Savings);
+//		acc.setAccountStatus(AccountStatus.Pending);
+//		em.persist(acc);
+//
+//		Address address = new Address();
+//		address.setCustomer(cust);
+//		em.persist(address);
+//
+//		Income income = new Income();
+//		income.setCustomer(cust);
+//		em.persist(income);
+
+		
 	}
 
 	@Transactional
@@ -135,14 +154,19 @@ public class CustomerDaoImpl implements CustomerDao {
 
 	@Transactional
 	public User login(int userId, String password) {
-		String jpql = "select u from User u where u.userId=:uid and u.loginPassword=:pwd";
+		try {
+			String jpql = "select u from User u where u.userId=:uid and u.loginPassword=:pwd";
 
-		TypedQuery<User> query = em.createQuery(jpql, User.class);
-		query.setParameter("uid", userId);
-		query.setParameter("pwd", password);
+			TypedQuery<User> query = em.createQuery(jpql, User.class);
+			query.setParameter("uid", userId);
+			query.setParameter("pwd", password);
 
-		User user = query.getSingleResult();
-		return user;
+			User user = query.getSingleResult();
+			return user;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			throw new ServiceException("Invalid email/password");
+		}
 	}
 
 	@Transactional
@@ -194,23 +218,31 @@ public class CustomerDaoImpl implements CustomerDao {
 
 	@Transactional
 	public List<Customer> pendingRequest() {
-		String jpql = "select c from Customer c where c.accountStatus=:acSt";
+		String jpql = "select c from Customer c join Account a on c.custId=a.customer.custId and a.accountStatus=:acSt";
 		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
 		query.setParameter("acSt", AccountStatus.Pending);
 		return query.getResultList();
 	}
 
 	@Transactional
-	public void updatePendingRequest(int customerId, String response) {
-		String jpql = "update Customer c set c.accountStatus=:accSt where c.custId=:cId";
-		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
+	public String updatePendingRequest(int customerId, String response) {
+		String jpql = "update Account a set a.accountStatus=:accSt where c.custId=:cId";
+		TypedQuery<Account> query = em.createQuery(jpql, Account.class);
 		query.setParameter("accSt", response);
 		query.setParameter("cId", customerId);
 
-		Customer cust = query.getSingleResult();
-		Account acc = new Account();
-		acc.setCustomer(cust);
+		try {
+			Account acc = query.getSingleResult();
+			return "Account status changed";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "Account status change failed";
+		}
 
-		em.persist(acc);
+//		Account acc = new Account();
+//		acc.setCustomer(cust);
+//
+//		em.persist(acc);
 	}
 }

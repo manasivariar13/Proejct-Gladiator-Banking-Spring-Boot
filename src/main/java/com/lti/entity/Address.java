@@ -33,9 +33,9 @@ public class Address {
 
 	private String city;
 
-//	@OneToOne
-//	@JoinColumn(name = "customer_id")
-//	private Customer customer;
+	@OneToOne
+	@JoinColumn(name = "customer_id")
+	private Customer customer;
 
 	@Column(name = "pincode")
 	private int pincode;
@@ -54,6 +54,14 @@ public class Address {
 
 	public void setAddressLine1(String addressLine1) {
 		this.addressLine1 = addressLine1;
+	}
+
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
 	}
 
 	public String getAddressLine2() {

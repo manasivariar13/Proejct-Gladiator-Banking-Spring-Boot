@@ -28,8 +28,8 @@ public class Customer {
 	@Column(name = "customer_id")
 	private int custId;
 
-	@Column(name = "login_password")
-	private String customerPassword;
+//	@Column(name = "login_password")
+//	private String customerPassword;
 
 	Gender gender;
 
@@ -51,27 +51,25 @@ public class Customer {
 	@Column(name = "pan_card_no")
 	private String panCardNo;
 
-	AccountStatus accountStatus;
-
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name  = "address_id")
+//	@Column(name = "account_status")
+//	AccountStatus accountStatus;
+	
+	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
 	private Address address;
 
-//	@OneToMany(cascade = CascadeType.ALL)
-//	@JoinColumn(name = "account")
-//	private List<Account> account;
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+	private List<Account> account;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "income_id")
+	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
 	private Income income;
 
-//	public List<Account> getAccount() {
-//		return account;
-//	}
-//
-//	public void setAccount(List<Account> account) {
-//		this.account = account;
-//	}
+	public List<Account> getAccount() {
+		return account;
+	}
+
+	public void setAccount(List<Account> account) {
+		this.account = account;
+	}
 
 	public Income getIncome() {
 		return income;
@@ -89,13 +87,13 @@ public class Customer {
 //		this.customerPassword = customerPassword;
 //	}
 
-	public AccountStatus getAccountStatus() {
-		return accountStatus;
-	}
-
-	public void setAccountStatus(AccountStatus accountStatus) {
-		this.accountStatus = accountStatus;
-	}
+//	public AccountStatus getAccountStatus() {
+//		return accountStatus;
+//	}
+//
+//	public void setAccountStatus(AccountStatus accountStatus) {
+//		this.accountStatus = accountStatus;
+//	}
 
 	public int getCustId() {
 		return custId;

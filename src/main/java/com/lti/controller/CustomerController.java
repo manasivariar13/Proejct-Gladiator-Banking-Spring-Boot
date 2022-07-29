@@ -20,13 +20,18 @@ import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.FundTransferDto;
 import com.lti.dto.LoginDto;
+import com.lti.dto.SendAllBeneficiariesDto;
+import com.lti.dto.Status;
+import com.lti.dto.Status.StatusCode;
 import com.lti.dto.TopFiveTransactionDto;
+import com.lti.dto.UserLoginStatus;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
 import com.lti.entity.User;
+import com.lti.exception.ServiceException;
 import com.lti.service.CustomerService;
 
 @RestController
@@ -39,9 +44,21 @@ public class CustomerController {
 
 //	@RequestMapping(value = "/addBeneficiary", method = RequestMethod.POST)
 	@PostMapping(value = "/addBeneficiary")
-	public String addBeneficiary(@RequestBody BeneficiaryAccountDto beneficiary) {
-		String message = customerService.addBeneficiary(beneficiary);
-		return message;
+	public Status addBeneficiary(@RequestBody BeneficiaryAccountDto beneficiary) {
+		try {
+			customerService.addBeneficiary(beneficiary);
+			Status status=new Status();
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("Beneficiary Added Successfully");
+			return status;
+			
+		}catch (ServiceException e) {
+			
+			Status status = new Status();
+			status.setStatusMessage(e.getMessage());
+			status.setStatusCode(StatusCode.FAILURE);
+			return status;
+		}
 	}
 
 	@GetMapping(value = "/findBeneficiary/{beneficiaryId}")
@@ -50,8 +67,26 @@ public class CustomerController {
 	}
 
 	@GetMapping(value = "/viewAllBeneficiaries/{accNo}")
-	public List<ViewAllBeneficiariesDto> viewAllBeneficiaries(@PathVariable int accNo) {
-		return customerService.viewAllBeneficiaries(accNo);
+	public SendAllBeneficiariesDto viewAllBeneficiaries(@PathVariable int accNo) {
+//		SendAllBeneficiariesDto dto = new SendAllBeneficiariesDto();
+//		dto.setBeneficiaryDto(customerService.viewAllBeneficiaries(accNo));
+//
+//		return dto;
+		
+		try{
+			 List<ViewAllBeneficiariesDto> list= customerService.viewAllBeneficiaries(accNo);
+			 SendAllBeneficiariesDto status=new SendAllBeneficiariesDto();
+			 status.setBeneficiaryDto(list);
+			 status.setStatusCode(StatusCode.SUCCESS);
+			 status.setStatusMessage("Beneficiary Fetched Successfully");
+			 return status;
+		}catch (ServiceException e) {
+			SendAllBeneficiariesDto status=new SendAllBeneficiariesDto();
+			 status.setBeneficiaryDto(null);
+			 status.setStatusCode(StatusCode.FAILURE);
+			 status.setStatusMessage(e.getMessage());
+			 return status;
+		}
 	}
 
 	@DeleteMapping(value = "/deleteBeneficiary/{beneficiaryId}")
@@ -63,11 +98,11 @@ public class CustomerController {
 	@PostMapping(value = "/openAccount")
 	public String openAccount(@RequestBody Customer customer) {
 //		return customer.getAadhaarNo();
-		System.out.print("Hiiiiiiiiiii");
+//		System.out.print("Hiiiiiiiiiii");
 		System.out.print(customer.getEmailId());
 //		return customer.get("emailId");
-		return "Test";
-//		return customerService.openAccount(customer);
+//		return "Test";
+		return customerService.openAccount(customer);
 	}
 
 	@GetMapping(value = "/accountSummary/{accountNumber}")
@@ -101,8 +136,23 @@ public class CustomerController {
 	}
 
 	@PostMapping(value = "/login")
-	public User login(@RequestBody LoginDto loginDto) {
-		return customerService.login(loginDto.getUserId(), loginDto.getLoginPassword());
+	public UserLoginStatus login(@RequestBody LoginDto loginDto) {
+//		return customerService.login(loginDto.getUserId(), loginDto.getLoginPassword());
+		try {
+			User user = customerService.login(loginDto.getUserId(), loginDto.getLoginPassword());
+			UserLoginStatus userLoginStatus = new UserLoginStatus();
+			userLoginStatus.setStatusCode(StatusCode.SUCCESS);
+			userLoginStatus.setStatusMessage("Login Successful");
+			userLoginStatus.setUserId(user.getUserId());
+			userLoginStatus.setAccountNumber(String.valueOf(user.getAccountNumber()));
+			return userLoginStatus;
+		}
+		catch (ServiceException e) {
+			UserLoginStatus userLoginStatus = new UserLoginStatus();
+			userLoginStatus.setStatusCode(StatusCode.FAILURE);
+			userLoginStatus.setStatusMessage(e.getMessage());
+			return userLoginStatus;
+		}
 	}
 
 }

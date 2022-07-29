@@ -47,6 +47,6 @@ public interface CustomerDao {
 
 	List<Customer> pendingRequest();
 
-	void updatePendingRequest(int customerId, String response);
+	String updatePendingRequest(int customerId, String response);
 
 }

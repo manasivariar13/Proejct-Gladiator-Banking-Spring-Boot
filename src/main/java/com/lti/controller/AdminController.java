@@ -35,8 +35,8 @@ public class AdminController {
 	}
 	
 	@PutMapping(value = "/updateRequest")
-	public void updateRequest(@RequestBody int customerId, String response) {
-		customerService.updatePendingRequests(customerId, response);
+	public String updateRequest(@RequestBody int customerId, String response) {
+		return customerService.updatePendingRequests(customerId, response);
 	}
 	
 	@PostMapping(value = "/createAdmin")

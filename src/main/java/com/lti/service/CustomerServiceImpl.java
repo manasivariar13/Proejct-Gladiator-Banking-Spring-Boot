@@ -93,9 +93,9 @@ public class CustomerServiceImpl implements CustomerService {
 	public String openAccount(Customer customer) {
 //		System.out.print(customer.getEmailId());
 		try {
-//			Account acc = dao.openAccount(account);
+			Customer cust = dao.openAccount(customer);
 			return "Registration has been initiated. We'll let you know the Account status soon. Your customer ID: "
-					+ customer.getCustId();
+					+ cust.getCustId();
 		} catch (Exception e) {
 			return e.getMessage();
 //			return "Unexpected error occured. Account Registration failed.";
@@ -210,8 +210,8 @@ public class CustomerServiceImpl implements CustomerService {
 //		}
 	}
 
-	public void updatePendingRequests(int customerId, String response) {
-		dao.updatePendingRequest(customerId, response);
+	public String updatePendingRequests(int customerId, String response) {
+		return dao.updatePendingRequest(customerId, response);
 	}
 
 }

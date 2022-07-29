@@ -47,7 +47,7 @@ public interface CustomerService {
 	
 	public Admin addAdmin();
 	
-	void updatePendingRequests(int customerId, String response);
+	String updatePendingRequests(int customerId, String response);
 	
 	
 }
