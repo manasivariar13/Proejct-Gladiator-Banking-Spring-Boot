@@ -28,6 +28,8 @@ public interface CustomerDao {
 
 	boolean isCustomerExists(int accountNumber);
 
+	boolean isCustExists(int userId);
+
 	Customer addOrUpdateCustomer(Customer customer);
 
 	User login(int userId, String password);
@@ -51,5 +53,9 @@ public interface CustomerDao {
 	List<Customer> pendingRequest();
 
 	String updatePendingRequest(int customerId, String response);
+
+	<T> T save(Object object);
+
+	<T> T fetchById(Class<T> className, int id);
 
 }

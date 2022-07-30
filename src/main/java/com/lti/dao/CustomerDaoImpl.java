@@ -189,6 +189,16 @@ public class CustomerDaoImpl implements CustomerDao {
 	}
 
 	@Transactional
+	public boolean isCustExists(int custId) {
+//		String jpql="select count(c.custId)>0 from Customer c where c.custId=:custId";
+//		TypedQuery<Customer> query=em.createNamedQuery(jpql, Customer.class);
+//		query.setParameter("custId",custId);
+//		Customer cust=query.getSingleResult();
+//		return cust!=null?true:false;
+		return em.find(Customer.class, custId) != null;
+	}
+	
+	@Transactional
 	public Customer addOrUpdateCustomer(Customer customer) {
 		Customer c = em.merge(customer);
 		return c;
@@ -286,5 +296,15 @@ public class CustomerDaoImpl implements CustomerDao {
 //		acc.setCustomer(cust);
 //
 //		em.persist(acc);
+	}
+	
+	@Transactional
+	public <T> T save(Object object) {
+		return (T) em.merge(object);
+	}
+
+	@Transactional
+	public <T> T fetchById(Class<T> className, int id) {
+		return em.find(className, id);
 	}
 }
