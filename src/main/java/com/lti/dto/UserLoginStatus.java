@@ -4,7 +4,14 @@ public class UserLoginStatus extends Status{
 	
 	private int userId;
 	private String accountNumber;
+	private  int custId;
 	
+	public int getCustId() {
+		return custId;
+	}
+	public void setCustId(int custId) {
+		this.custId = custId;
+	}
 	public int getUserId() {
 		return userId;
 	}

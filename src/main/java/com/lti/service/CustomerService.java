@@ -1,19 +1,25 @@
 package com.lti.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
+import com.lti.dto.ForgotPasswordDto;
+import com.lti.dto.RegisterUserDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
+import com.lti.entity.AccountStatus;
 import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
 import com.lti.entity.Income;
 import com.lti.entity.Transaction;
+import com.lti.entity.TransactionType;
 import com.lti.entity.User;
 
 public interface CustomerService {
@@ -30,26 +36,38 @@ public interface CustomerService {
 
 	boolean isCustomerExists(int accountNumber);
 
-	String signup(User user);
+	RegisterUserDto signup(User user);
 
 	User login(int userId, String password);
+
+	ForgotPasswordDto forgotPassword(int userId);
+
+	String changePassword(int userId, String loginPassword, String transactionPassword);
 
 //	Account services 
 
 	int openAccount(CustomerDto customerDto);
 
+	Customer searchCustomerById(int custId);
+
+	String updateProfile(CustomerDto customerDto);
+
 	AccountSummaryDto accountSummary(int accountNumber);
 
-	List<TopFiveTransactionDto> accountStatement(int accountNumber);
+	List<TopFiveTransactionDto> accountStatement(int accountNumber, LocalDate fromDate, LocalDate toDate);
 
-	String fundTransfer(Account fromAccount, Account toAccount, double amount);
+	String fundTransfer(String fromAccount, String toAccount, double amount, TransactionType type, String password);
 
 	boolean adminLogin(int adminId, String adminPassword);
+
+	int getCustomerId(int accountNumber);
 
 	List<Customer> pendingRequest();
 
 	public Admin addAdmin();
 
 	String updatePendingRequests(int customerId, String response);
+
+	AccountStatus trackApplication(int custId);
 
 }

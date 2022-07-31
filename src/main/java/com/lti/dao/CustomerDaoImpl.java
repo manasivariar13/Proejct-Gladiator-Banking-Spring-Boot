@@ -11,6 +11,8 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import com.lti.dto.CustomerDto;
+import com.lti.dto.ForgotPasswordDto;
+import com.lti.dto.RegisterUserDto;
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
 import com.lti.entity.AccountType;
@@ -30,28 +32,6 @@ public class CustomerDaoImpl implements CustomerDao {
 
 	@PersistenceContext
 	EntityManager em;
-
-//	@Transactional
-//	public Customer openAccount(Customer customer) {
-//		Customer cust = em.merge(customer);
-//		return cust;
-//
-////		Account acc = new Account();
-////		acc.setCustomer(cust);
-////		acc.setType(AccountType.Savings);
-////		acc.setAccountStatus(AccountStatus.Pending);
-////		em.persist(acc);
-////
-////		Address address = new Address();
-////		address.setCustomer(cust);
-////		em.persist(address);
-////
-////		Income income = new Income();
-////		income.setCustomer(cust);
-////		em.persist(income);
-//
-//		
-//	}
 
 	@Transactional
 	public Customer openAccount(CustomerDto customerDto) {
@@ -95,41 +75,111 @@ public class CustomerDaoImpl implements CustomerDao {
 	}
 
 	@Transactional
+	public Customer searchCustomerById(int custId) {
+		Customer cust = em.find(Customer.class, custId);
+
+		return cust;
+	}
+
+	@Transactional
+	public Customer updateProfile(CustomerDto customerDto) {
+
+		Customer customer = new Customer();
+		customer.setCustId(customerDto.getCustId());
+		customer.setName(customerDto.getName());
+		customer.setMobileNo(customerDto.getMobileNo());
+		customer.setEmailId(customerDto.getEmailId());
+		customer.setPanCardNo(customerDto.getPanCardNo());
+		customer.setAadhaarNo(customerDto.getAadhaarNo());
+		customer.setDateOfBirth(customerDto.getDateOfBirth());
+		customer.setGender(customerDto.getGender());
+
+		Address address = new Address();
+		address.setAddressId(customerDto.getAddressId());
+		address.setAddressLine1(customerDto.getAddressLine1());
+		address.setAddressLine2(customerDto.getAddressLine2());
+		address.setCity(customerDto.getCity());
+		address.setLandmark(customerDto.getLandmark());
+		address.setState(customerDto.getState());
+		address.setPincode(customerDto.getPincode());
+		address.setCustomer(customer);
+
+		Income income = new Income();
+		income.setIncomeId(customerDto.getIncomeId());
+		income.setOccupationType(customerDto.getOccupationType());
+		income.setIncomeSource(customerDto.getIncomeSource());
+		income.setGrossIncome(customerDto.getGrossIncome());
+		income.setCustomer(customer);
+
+//		customer.setAddress(address);
+//		customer.setIncome(income);
+
+		em.merge(income);
+		em.merge(address);
+
+		Customer updatedProfile = em.merge(customer);
+		return updatedProfile;
+	}
+
+	@Transactional
 	public Account accountSummary(int accountNumber) {
 		return em.find(Account.class, accountNumber);
 	}
 
 	@Transactional
-	public List<Transaction> accountStatement(int accountNumber) {
-		String jpql = "select t from Transaction t where t.account.accountNumber=:accno";
+	public List<Transaction> accountStatement(int accountNumber, LocalDate fromDate, LocalDate toDate) {
+		String jpql = "select t from Transaction t where t.account.accountNumber=:accno and t.transactionDate between to_date(:fromDate) and to_date(:toDate)";
 		TypedQuery<Transaction> query = em.createQuery(jpql, Transaction.class);
 		query.setParameter("accno", accountNumber);
+		query.setParameter("fromDate", fromDate);
+		query.setParameter("toDate", toDate);
 		return query.getResultList();
 	}
 
 	@Transactional
-	public Transaction fundTransfer(Account fromAccount, Account toAccount, double amount) {
-		Transaction transaction = new Transaction();
-		transaction.setAccount(toAccount);
-		transaction.setAmount(amount);
-		transaction.setTransactionDate(LocalDate.now());
-		transaction.setTransactionType(TransactionType.NEFT);
-		transaction.setMode("Credit");
-		em.persist(transaction);
+	public boolean checkTransactionPassword(int accountNumber, String password) {
+		System.err.println(accountNumber + " " + password);
+		String jpql = "select u from User u where u.accountNumber=:accNo and u.transactionPassword=:tpwd";
+		TypedQuery<User> query = em.createQuery(jpql, User.class);
 
-		Transaction transaction1 = new Transaction();
-		transaction1.setAccount(fromAccount);
-		transaction1.setAmount(amount);
-		transaction1.setTransactionDate(LocalDate.now());
-		transaction1.setTransactionType(TransactionType.NEFT);
-		transaction1.setMode("Debit");
-		em.persist(transaction1);
+		query.setParameter("accNo", accountNumber);
+		query.setParameter("tpwd", password);
 
-		fromAccount.setBalance(fromAccount.getBalance() - amount);
-		em.merge(fromAccount);
-		toAccount.setBalance(toAccount.getBalance() + amount);
-		em.merge(toAccount);
-		return transaction;
+		try {
+			User user = query.getSingleResult();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Transactional
+	public Transaction fundTransfer(Account fromAccount, Account toAccount, double amount, TransactionType type,
+			String password) {
+
+		if (checkTransactionPassword(fromAccount.getAccountNumber(), password)) {
+			Transaction transaction = new Transaction();
+			transaction.setAccount(toAccount);
+			transaction.setAmount(amount);
+			transaction.setTransactionDate(LocalDate.now());
+			transaction.setTransactionType(type);
+			transaction.setMode("Credit");
+			em.persist(transaction);
+			Transaction transaction1 = new Transaction();
+			transaction1.setAccount(fromAccount);
+			transaction1.setAmount(amount);
+			transaction1.setTransactionDate(LocalDate.now());
+			transaction1.setTransactionType(type);
+			transaction1.setMode("Debit");
+			em.persist(transaction1);
+			fromAccount.setBalance(fromAccount.getBalance() - amount);
+			em.merge(fromAccount);
+			toAccount.setBalance(toAccount.getBalance() + amount);
+			em.merge(toAccount);
+			return transaction;
+		} else {
+			throw new ServiceException("Authentication failed");
+		}
 	}
 
 	@Transactional
@@ -212,11 +262,25 @@ public class CustomerDaoImpl implements CustomerDao {
 	}
 
 	@Transactional
-	public String signup(User user) {
+	public int getCustomerId(int accountNumber) {
+		Account acc = em.find(Account.class, accountNumber);
+		return acc.getCustomer().getCustId();
+	}
+
+	@Transactional
+	public RegisterUserDto signup(User user) {
 //		User u = em.merge(user);
 		em.persist(user);
 		em.flush();
-		return String.valueOf(user.getUserId());
+
+		int custId = getCustomerId(user.getAccountNumber());
+		String email = searchCustomerById(custId).getEmailId();
+
+		RegisterUserDto dto = new RegisterUserDto();
+		dto.setUserId(String.valueOf(user.getUserId()));
+		dto.setEmail(email);
+
+		return dto;
 	}
 
 //	@Transactional
@@ -286,5 +350,70 @@ public class CustomerDaoImpl implements CustomerDao {
 //		acc.setCustomer(cust);
 //
 //		em.persist(acc);
+	}
+
+	@Transactional
+	public ForgotPasswordDto forgotPassword(int userId) {
+		String jpql = "update User u set u.loginPassword=:pwd where u.userId=:uId";
+
+		String AlphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789" + "abcdefghijklmnopqrstuvxyz";
+		StringBuilder sb = new StringBuilder(8);
+
+		for (int i = 0; i < 8; i++) {
+			int index = (int) (AlphaNumericString.length() * Math.random());
+
+			sb.append(AlphaNumericString.charAt(index));
+		}
+
+//		return sb.toString();
+//		em.createQuery(jpql).setParameter("pwd", sb.toString()).setParameter("uId", userId).getSingleResult();
+//		query.setParameter("pwd", sb.toString());
+//		query.setParameter("uId", userId);
+
+		try {
+			em.createQuery(jpql).setParameter("pwd", sb.toString()).setParameter("uId", userId).executeUpdate();
+			User user = em.createQuery("select u from User u where u.userId=:uid", User.class)
+					.setParameter("uid", userId).getSingleResult();
+			int custId = getCustomerId(user.getAccountNumber());
+			String email = searchCustomerById(custId).getEmailId();
+			ForgotPasswordDto dto = new ForgotPasswordDto();
+			dto.setEmail(email);
+			dto.setPassword(sb.toString());
+			return dto;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+//			return "Account status change failed";
+			throw new ServiceException("Password updation failed.");
+		}
+		// TODO Auto-generated method stub
+//		return null;
+	}
+
+	@Transactional
+	public String changePassword(int userId, String loginPassword, String transactionPassword) {
+		try {
+			String jpql = "update User u set u.loginPassword=:lpwd, u.transactionPassword=:tpwd where u.userId=:uId";
+			em.createQuery(jpql).setParameter("lpwd", loginPassword).setParameter("tpwd", transactionPassword)
+					.setParameter("uId", userId).executeUpdate();
+			return "Passwords Changed Successfully.";
+		} catch (Exception e) {
+			throw new ServiceException("Something went wrong");
+		}
+
+	}
+
+	@Transactional
+	public AccountStatus trackApplication(int custId) {
+		String jpql = "select a from Account a join Customer c on c.custId=a.customer.custId where c.custId=:cid";
+		TypedQuery<Account> query = em.createQuery(jpql, Account.class);
+		query.setParameter("cid", custId);
+		try {
+			Account acc = query.getSingleResult();
+			return acc.getAccountStatus();
+		} catch (Exception e) {
+			throw new ServiceException(e.getMessage());
+		}
+
 	}
 }

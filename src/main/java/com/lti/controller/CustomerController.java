@@ -16,16 +16,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lti.dto.AccountStatementDto;
+import com.lti.dto.AccountStatementStatus;
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+import com.lti.dto.ChangePasswordDto;
+import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
+import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.FundTransferDto;
 import com.lti.dto.LoginDto;
 import com.lti.dto.OpenAccountDto;
+import com.lti.dto.RegisterUserDto;
 import com.lti.dto.SendAllBeneficiariesDto;
 import com.lti.dto.Status;
 import com.lti.dto.Status.StatusCode;
 import com.lti.dto.TopFiveTransactionDto;
+import com.lti.dto.TopFiveTransactionsStatus;
+import com.lti.dto.TrackApplicationDto;
 import com.lti.dto.UserLoginStatus;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
@@ -35,6 +43,7 @@ import com.lti.entity.Transaction;
 import com.lti.entity.User;
 import com.lti.exception.ServiceException;
 import com.lti.service.CustomerService;
+import com.lti.service.EmailService;
 
 @RestController
 @RequestMapping("/api")
@@ -43,6 +52,9 @@ public class CustomerController {
 
 	@Autowired
 	CustomerService customerService;
+
+	@Autowired
+	EmailService emailService;
 
 //	@RequestMapping(value = "/addBeneficiary", method = RequestMethod.POST)
 	@PostMapping(value = "/addBeneficiary")
@@ -116,14 +128,90 @@ public class CustomerController {
 		}
 	}
 
+	@GetMapping("/searchCustomer/{custId}")
+	public CustomerDetails searchCustomerById(@PathVariable int custId) {
+
+		try {
+			Customer cust = customerService.searchCustomerById(custId);
+			CustomerDto dto = new CustomerDto();
+
+			dto.setCustId(cust.getCustId());
+			dto.setName(cust.getName());
+			dto.setGender(cust.getGender());
+			dto.setPanCardNo(cust.getPanCardNo());
+			dto.setAadhaarNo(cust.getAadhaarNo());
+			dto.setMobileNo(cust.getMobileNo());
+			dto.setEmailId(cust.getEmailId());
+			dto.setDateOfBirth(cust.getDateOfBirth());
+
+			dto.setIncomeId(cust.getIncome().getIncomeId());
+			dto.setIncomeSource(cust.getIncome().getIncomeSource());
+			dto.setGrossIncome(cust.getIncome().getGrossIncome());
+			dto.setIncomeSource(cust.getIncome().getIncomeSource());
+			dto.setOccupationType(cust.getIncome().getOccupationType());
+
+			dto.setAddressId(cust.getAddress().getAddressId());
+			dto.setAddressLine1(cust.getAddress().getAddressLine1());
+			dto.setAddressLine2(cust.getAddress().getAddressLine2());
+			dto.setLandmark(cust.getAddress().getLandmark());
+			dto.setCity(cust.getAddress().getCity());
+			dto.setPincode(cust.getAddress().getPincode());
+			dto.setState(cust.getAddress().getState());
+
+			CustomerDetails details = new CustomerDetails();
+			details.setCustomer(dto);
+			details.setStatusCode(StatusCode.SUCCESS);
+			details.setStatusMessage("Fetch succesfull");
+			return details;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			CustomerDetails details = new CustomerDetails();
+			details.setStatusCode(StatusCode.FAILURE);
+			details.setStatusMessage(e.getMessage());
+			return details;
+		}
+	}
+
+	@PutMapping("/updateProfile")
+	public Status updateUserProfile(@RequestBody CustomerDto customerDto) {
+		try {
+			String message = customerService.updateProfile(customerDto);
+			Status status = new Status();
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage(message);
+			return status;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+//			e.printStackTrace();
+			Status status = new Status();
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
+//		return message;
+	}
+
 	@GetMapping(value = "/accountSummary/{accountNumber}")
 	public AccountSummaryDto accountSummary(@PathVariable int accountNumber) {
 		return customerService.accountSummary(accountNumber);
 	}
 
 	@GetMapping(value = "/findTopFiveTransactions/{accountNumber}")
-	public List<TopFiveTransactionDto> findTopFiveTransactions(@PathVariable int accountNumber) {
-		return customerService.findTopFiveTransactions(accountNumber);
+	public TopFiveTransactionsStatus findTopFiveTransactions(@PathVariable int accountNumber) {
+		try {
+			TopFiveTransactionsStatus status = new TopFiveTransactionsStatus();
+			List<TopFiveTransactionDto> transactions = customerService.findTopFiveTransactions(accountNumber);
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("Data fetched successfully");
+			status.setTopTransactions(transactions);
+			return status;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			TopFiveTransactionsStatus status = new TopFiveTransactionsStatus();
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
 	}
 
 	@GetMapping(value = "/isCustomerExists/{accountNumber}")
@@ -131,19 +219,133 @@ public class CustomerController {
 		return customerService.isCustomerExists(accountNumber);
 	}
 
-	@GetMapping(value = "/accountStatement/{accountNumber}")
-	public List<TopFiveTransactionDto> accountStatement(@PathVariable int accountNumber) {
-		return customerService.accountStatement(accountNumber);
+	@PostMapping(value = "/accountStatement")
+	public AccountStatementStatus accountStatement(@RequestBody AccountStatementDto dto) {
+		try {
+			AccountStatementStatus status = new AccountStatementStatus();
+			status.setTransactions(
+					customerService.accountStatement(dto.getAccountNumber(), dto.getFromDate(), dto.getToDate()));
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("Data fetch successful");
+			return status;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+//			e.printStackTrace();
+			AccountStatementStatus status = new AccountStatementStatus();
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
 	}
 
 	@PostMapping(value = "/fundTransfer")
-	public String fundTransfer(@RequestBody FundTransferDto ftDto) {
-		return customerService.fundTransfer(ftDto.getFromAccount(), ftDto.getToAccount(), ftDto.getAmount());
+	public Status fundTransfer(@RequestBody FundTransferDto ftDto) {
+		try {
+			Status status = new Status();
+
+			status.setStatusMessage(customerService.fundTransfer(ftDto.getFromAccount(), ftDto.getToAccount(),
+					ftDto.getAmount(), ftDto.getType(), ftDto.getPassword()));
+			status.setStatusCode(StatusCode.SUCCESS);
+			return status;
+		} catch (Exception e) {
+			Status status = new Status();
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			System.err.println(status.getStatusCode());
+			return status;
+		}
+
+	}
+
+	@GetMapping(value = "/forgotPassword/{userId}")
+	public Status forgotPassword(@PathVariable int userId) {
+		Status status = new Status();
+		try {
+			ForgotPasswordDto dto = customerService.forgotPassword(userId);
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("New generated password has been mailed to you");
+
+			String email = dto.getEmail();
+			String text = "Password has been changed.\nYour new generated password is: " + dto.getPassword()
+					+ "\nNote: Kindly login and change the password to your own one.";
+			String subject = "Forgot Password";
+
+			emailService.sendEmailForSignup(email, text, subject);
+		} catch (Exception e) {
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+		}
+		return status;
+	}
+
+	@PutMapping(value = "/changePassword")
+	public Status changePassword(@RequestBody ChangePasswordDto dto) {
+		Status status = new Status();
+		try {
+			status.setStatusMessage(customerService.changePassword(dto.getUserId(), dto.getLoginPassword(),
+					dto.getTransactionPassword()));
+			status.setStatusCode(StatusCode.SUCCESS);
+			return status;
+		} catch (Exception e) {
+
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
+	}
+
+	@GetMapping(value = "/getOTP/{custId}")
+	public Status getOTP(@PathVariable int custId) {
+		System.err.println(custId);
+		try {
+			String AlphaNumericString = "0123456789";
+			StringBuilder sb = new StringBuilder(6);
+
+			for (int i = 0; i < 6; i++) {
+				int index = (int) (AlphaNumericString.length() * Math.random());
+
+				sb.append(AlphaNumericString.charAt(index));
+			}
+			Status status = new Status();
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage(sb.toString());
+
+			String email = customerService.searchCustomerById(custId).getEmailId();
+			String text = "Your OTP for the fund transfer is: " + sb.toString();
+			String subject = "OTP for Fund Transfer";
+
+			emailService.sendEmailForSignup(email, text, subject);
+
+			return status;
+		} catch (Exception e) {
+			Status status = new Status();
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
 	}
 
 	@RequestMapping(value = "/signup", method = RequestMethod.POST)
-	public String signup(@RequestBody User user) {
-		return customerService.signup(user);
+	public Status signup(@RequestBody User user) {
+		try {
+			Status status = new Status();
+			RegisterUserDto dto = customerService.signup(user);
+
+			status.setStatusMessage("Registration successful");
+			status.setStatusCode(StatusCode.SUCCESS);
+
+			String email = dto.getEmail();
+			String text = "Registration Successful. Your generated user ID: " + dto.getUserId();
+			String subject = "Registration Confirmation";
+
+			emailService.sendEmailForSignup(email, text, subject);
+			return status;
+		} catch (Exception e) {
+			Status status = new Status();
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+			return status;
+		}
 	}
 
 	@PostMapping(value = "/login")
@@ -156,6 +358,7 @@ public class CustomerController {
 			userLoginStatus.setStatusMessage("Login Successful");
 			userLoginStatus.setUserId(user.getUserId());
 			userLoginStatus.setAccountNumber(String.valueOf(user.getAccountNumber()));
+			userLoginStatus.setCustId(customerService.getCustomerId(user.getAccountNumber()));
 			return userLoginStatus;
 		} catch (ServiceException e) {
 			UserLoginStatus userLoginStatus = new UserLoginStatus();
@@ -163,6 +366,22 @@ public class CustomerController {
 			userLoginStatus.setStatusMessage(e.getMessage());
 			return userLoginStatus;
 		}
+	}
+
+	@GetMapping(value = "/trackApplication/{custId}")
+	public TrackApplicationDto trackApplication(@PathVariable int custId) {
+		TrackApplicationDto dto = new TrackApplicationDto();
+
+		try {
+			dto.setStatusCode(StatusCode.SUCCESS);
+			dto.setStatusMessage("Application fetch Successful.");
+			dto.setAccountStatus(customerService.trackApplication(custId));
+		} catch (Exception e) {
+			dto.setStatusCode(StatusCode.FAILURE);
+			dto.setStatusMessage(e.getMessage());
+		}
+
+		return dto;
 	}
 
 }

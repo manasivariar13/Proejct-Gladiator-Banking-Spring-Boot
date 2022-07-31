@@ -55,6 +55,7 @@ public class Customer {
 //	AccountStatus accountStatus;
 	
 	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+	
 	private Address address;
 
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)

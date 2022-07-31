@@ -15,6 +15,7 @@ public class CustomerDto {
 	private LocalDate dateOfBirth;
 	private String panCardNo;
 	private String emailId;
+	private int addressId;
 	private String addressLine1;
 	private String addressLine2;
 	private String landmark;
@@ -24,10 +25,23 @@ public class CustomerDto {
 	private AccountStatus accountStatus;
 	private AccountType accountType;
 	private double balance;
+	private int incomeId;
 	private String occupationType;
 	private String IncomeSource;
 	private double grossIncome;
 	
+	public int getAddressId() {
+		return addressId;
+	}
+	public void setAddressId(int addressId) {
+		this.addressId = addressId;
+	}
+	public int getIncomeId() {
+		return incomeId;
+	}
+	public void setIncomeId(int incomeId) {
+		this.incomeId = incomeId;
+	}
 	public int getCustId() {
 		return custId;
 	}

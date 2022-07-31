@@ -7,7 +7,7 @@ import com.lti.entity.TransactionType;
 public class TopFiveTransactionDto {
 	private int transactionId;
 	private LocalDate transactionDate;
-	private double balance;
+	private double amount;
 	private TransactionType transactionType;
 	private int accountNumber;
 	private String transactionMode;
@@ -28,12 +28,12 @@ public class TopFiveTransactionDto {
 		this.transactionDate = transactionDate;
 	}
 
-	public double getBalance() {
-		return balance;
+	public double getAmount() {
+		return amount;
 	}
 
-	public void setBalance(double balance) {
-		this.balance = balance;
+	public void setAmount(double amount) {
+		this.amount = amount;
 	}
 
 	public TransactionType getTransactionType() {
