@@ -8,30 +8,48 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+
+@Component
+@Scope(scopeName = "prototype")
 @Entity
 @Table(name = "table_admin")
 public class Admin {
 
 	@Id
-	@SequenceGenerator(name = "adm_seq", initialValue = 1, allocationSize = 1)
-	@GeneratedValue(generator = "adm_seq", strategy = GenerationType.SEQUENCE)
+//	@SequenceGenerator(name = "adm_seq", initialValue = 1, allocationSize = 1)
+//	@GeneratedValue(generator = "adm_seq", strategy = GenerationType.SEQUENCE)
 	@Column(name = "admin_login_id")
-	private int adminId;
-
-	@Column(name = "admin_password")
-	private String adminPassword;
+	private String adminId;
 
 	@Column(name = "admin_name")
 	private String adminName;
+	@Column(name = "admin_password")
+	private String adminPassword;
 
-	public int getAdminId() {
+
+	public String getAdminId() {
 		return adminId;
 	}
-
-	public void setId(int adminId) {
+	public Admin(String adminId, String adminPassword,String adminName) {
+		super();
 		this.adminId = adminId;
+		this.adminPassword = adminPassword;
+		this.adminName=adminName;
 	}
 
+
+	public void setId(String adminId) {
+		this.adminId = adminId;
+	}
+	
+	
+	public Admin() {
+		super();
+		
+	}
 	public String getAdminPassword() {
 		return adminPassword;
 	}

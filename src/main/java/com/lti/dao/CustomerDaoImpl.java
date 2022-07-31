@@ -9,6 +9,7 @@ import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
@@ -184,19 +185,32 @@ public class CustomerDaoImpl implements CustomerDao {
 //	}
 
 	@Transactional
-	public boolean adminLogin(int adminId, String adminPassword) {
-		System.out.println(adminId + " " + adminPassword);
+	public boolean adminLogin(String adminId, String adminPassword) {
+//		System.out.println(adminId + " " + adminPassword);
 		String jpql = "select a from Admin a where a.adminId=:aid and a.adminPassword=:pwd";
-
+//		               select u from User u where u.userId=:uid and u.loginPassword=:pwd
 		TypedQuery<Admin> query = em.createQuery(jpql, Admin.class);
 		query.setParameter("aid", adminId);
 		query.setParameter("pwd", adminPassword);
+//		System.out.println(adminId + " " + adminPassword);
+		Admin admin= query.getSingleResult();
+		
 
-		Admin admin;
-
+//		System.out.print(admin.getAdminId().equals(adminId));
 		try {
-			admin = query.getSingleResult();
-			return admin != null ? true : false;
+			
+			if(admin==null) {
+				return false;
+			}else {
+			if(admin.getAdminId().equals(adminId)&&admin.getAdminPassword().equals(adminPassword)) {
+				return true;
+			}else {
+				return false;
+			}
+			
+				
+			}
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 //			e.printStackTrace();
@@ -205,17 +219,31 @@ public class CustomerDaoImpl implements CustomerDao {
 		}
 
 	}
-
+	@Override
 	@Transactional
-	public Admin addAdmin() {
-		Admin admin = new Admin();
-		admin.setAdminPassword("test123");
-		admin.setName("Ashwith");
-
-		em.persist(admin);
+	public Admin readAdminByAdminId(String adminId) {
+		Admin admin=em.find(Admin.class,adminId);
 		return admin;
 	}
-
+//
+//	@Transactional
+//	public Admin addAdmin() {
+//		Admin admin = new Admin();
+//		admin.setAdminPassword("test123");
+//		admin.setName("Ashwith");
+//
+//		em.persist(admin);
+//		return admin;
+//	}
+	@Override
+	@Transactional
+	public void createAdmin(Admin admin) {
+		
+		em.persist(admin);
+	}
+	
+	
+	
 	@Transactional
 	public List<Customer> pendingRequest() {
 		String jpql = "select c from Customer c join Account a on c.custId=a.customer.custId and a.accountStatus=:acSt";

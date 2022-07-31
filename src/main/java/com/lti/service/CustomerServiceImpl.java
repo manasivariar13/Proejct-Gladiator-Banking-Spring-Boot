@@ -5,12 +5,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lti.dao.CustomerDao;
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.BeneficiaryAccountDto;
+
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
+import com.lti.dto.adminLoginD;
 import com.lti.entity.Account;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
@@ -20,6 +24,8 @@ import com.lti.entity.User;
 import com.lti.exception.InsufficientFundsException;
 import com.lti.exception.MinimumAmountException;
 import com.lti.exception.ServiceException;
+
+
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -193,12 +199,31 @@ public class CustomerServiceImpl implements CustomerService {
 		return dao.login(userId, password);
 	}
 
-	public boolean adminLogin(int adminId, String adminPassword) {
+	public boolean adminLogin(String adminId, String adminPassword) {
 		return dao.adminLogin(adminId, adminPassword);
 	}
 	
-	public Admin addAdmin() {
-		return dao.addAdmin();
+//	public Admin addAdmin() {
+//		return dao.addAdmin();
+//	}
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public adminLoginD readAdminInfo(String adminId) 
+	{
+		Admin adminInfo=dao.readAdminByAdminId(adminId);
+		adminLoginD loginDTO=new adminLoginD();
+		loginDTO.setInternetBankingId(adminInfo.getAdminId());
+		loginDTO.setLoginPassword(adminInfo.getAdminPassword());
+		
+		return loginDTO;
+	}
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void createAdmin(Admin admin)
+	{
+		dao.createAdmin(admin);
+		
 	}
 
 	public List<Customer> pendingRequest() {

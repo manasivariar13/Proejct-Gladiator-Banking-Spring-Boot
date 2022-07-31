@@ -2,6 +2,8 @@ package com.lti.dao;
 
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import com.lti.entity.Account;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
@@ -9,6 +11,8 @@ import com.lti.entity.Customer;
 import com.lti.entity.Transaction;
 import com.lti.entity.User;
 
+
+@Component
 public interface CustomerDao {
 
 	Customer openAccount(Customer customer);
@@ -41,10 +45,13 @@ public interface CustomerDao {
 
 //	boolean adminExists(int adminId);
 
-	public Admin addAdmin();
+//	public Admin addAdmin();
+	public void createAdmin(Admin admin);
 
-	boolean adminLogin(int adminId, String adminPassword);
-
+	boolean adminLogin(String adminId, String adminPassword);
+	
+	public Admin readAdminByAdminId(String adminId);
+	
 	List<Customer> pendingRequest();
 
 	String updatePendingRequest(int customerId, String response);
