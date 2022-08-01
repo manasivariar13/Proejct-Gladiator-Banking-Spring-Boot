@@ -3,6 +3,7 @@ package com.lti.dao;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.lti.dto.AdminLoginStatus;
 import com.lti.dto.CustomerDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.RegisterUserDto;
@@ -29,13 +30,16 @@ public interface CustomerDao {
 
 	List<Transaction> accountStatement(int accountNumber, LocalDate fromDate, LocalDate toDate);
 
-	Transaction fundTransfer(Account fromAccount, Account toAccount, double amount, TransactionType type, String password);
-	
+	Transaction fundTransfer(Account fromAccount, Account toAccount, double amount, TransactionType type,
+			String password);
+
 	boolean checkTransactionPassword(int accountNumber, String password);
 
 	List<Transaction> findtoprec(int accNo);
 
 	boolean isCustomerExists(int accountNumber);
+
+	boolean isCustExists(int userId);
 
 	Customer addOrUpdateCustomer(Customer customer);
 
@@ -61,12 +65,16 @@ public interface CustomerDao {
 
 	public Admin addAdmin();
 
-	boolean adminLogin(int adminId, String adminPassword);
+	AdminLoginStatus adminLogin(int adminId, String adminPassword);
 
 	List<Customer> pendingRequest();
 
-	String updatePendingRequest(int customerId, String response);
-	
+	String updatePendingRequest(int custId, AccountStatus response);
+
 	AccountStatus trackApplication(int custId);
+
+	<T> T save(Object object);
+
+	<T> T fetchById(Class<T> className, int id);
 
 }

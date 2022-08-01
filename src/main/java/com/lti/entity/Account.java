@@ -19,10 +19,14 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerator;
 import com.lti.dao.CustomerDaoImpl;
 
 @Entity
 @Table(name = "table_account")
+
 public class Account {
 
 	@Id
@@ -40,6 +44,7 @@ public class Account {
 	@Column(name="account_status")
 	private AccountStatus accountStatus;
 
+	
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "customer_id")
 	private Customer customer;

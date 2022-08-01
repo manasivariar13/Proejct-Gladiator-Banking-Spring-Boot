@@ -3,10 +3,16 @@ package com.lti.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.mail.Multipart;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.lti.dto.AccountSummaryDto;
+import com.lti.dto.AdminLoginStatus;
 import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
+import com.lti.dto.DocumentUploadDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.RegisterUserDto;
 import com.lti.dto.TopFiveTransactionDto;
@@ -47,6 +53,8 @@ public interface CustomerService {
 //	Account services 
 
 	int openAccount(CustomerDto customerDto);
+	
+	String documentUpload(MultipartFile file);
 
 	Customer searchCustomerById(int custId);
 
@@ -58,15 +66,15 @@ public interface CustomerService {
 
 	String fundTransfer(String fromAccount, String toAccount, double amount, TransactionType type, String password);
 
-	boolean adminLogin(int adminId, String adminPassword);
+	AdminLoginStatus adminLogin(int adminId, String adminPassword);
 
 	int getCustomerId(int accountNumber);
 
-	List<Customer> pendingRequest();
+	List<CustomerDto> pendingRequest();
 
 	public Admin addAdmin();
 
-	String updatePendingRequests(int customerId, String response);
+	String updatePendingRequests(int custId, AccountStatus response);
 
 	AccountStatus trackApplication(int custId);
 

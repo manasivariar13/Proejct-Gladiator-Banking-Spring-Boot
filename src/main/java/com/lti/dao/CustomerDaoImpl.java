@@ -10,9 +10,11 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Component;
 
+import com.lti.dto.AdminLoginStatus;
 import com.lti.dto.CustomerDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.RegisterUserDto;
+import com.lti.dto.Status.StatusCode;
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
 import com.lti.entity.AccountType;
@@ -20,12 +22,12 @@ import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
-import com.lti.entity.Gender;
 import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
 import com.lti.entity.User;
 import com.lti.exception.ServiceException;
+import com.lti.entity.Gender;
 
 @Component
 public class CustomerDaoImpl implements CustomerDao {
@@ -45,6 +47,8 @@ public class CustomerDaoImpl implements CustomerDao {
 			customer.setDateOfBirth(customerDto.getDateOfBirth());
 			customer.setPanCardNo(customerDto.getPanCardNo());
 			customer.setEmailId(customerDto.getEmailId());
+			customer.setAadhar(customerDto.getAadharFileName());
+			customer.setPan(customerDto.getPanFileName());
 			Customer cust = em.merge(customer);
 			Address address = new Address();
 			address.setAddressLine1(customerDto.getAddressLine1());
@@ -157,6 +161,8 @@ public class CustomerDaoImpl implements CustomerDao {
 	public Transaction fundTransfer(Account fromAccount, Account toAccount, double amount, TransactionType type,
 			String password) {
 
+		System.err.println(type);
+
 		if (checkTransactionPassword(fromAccount.getAccountNumber(), password)) {
 			Transaction transaction = new Transaction();
 			transaction.setAccount(toAccount);
@@ -239,6 +245,16 @@ public class CustomerDaoImpl implements CustomerDao {
 	}
 
 	@Transactional
+	public boolean isCustExists(int custId) {
+//		String jpql="select count(c.custId)>0 from Customer c where c.custId=:custId";
+//		TypedQuery<Customer> query=em.createNamedQuery(jpql, Customer.class);
+//		query.setParameter("custId",custId);
+//		Customer cust=query.getSingleResult();
+//		return cust!=null?true:false;
+		return em.find(Customer.class, custId) != null;
+	}
+
+	@Transactional
 	public Customer addOrUpdateCustomer(Customer customer) {
 		Customer c = em.merge(customer);
 		return c;
@@ -290,7 +306,7 @@ public class CustomerDaoImpl implements CustomerDao {
 //	}
 
 	@Transactional
-	public boolean adminLogin(int adminId, String adminPassword) {
+	public AdminLoginStatus adminLogin(int adminId, String adminPassword) {
 		System.out.println(adminId + " " + adminPassword);
 		String jpql = "select a from Admin a where a.adminId=:aid and a.adminPassword=:pwd";
 
@@ -302,12 +318,24 @@ public class CustomerDaoImpl implements CustomerDao {
 
 		try {
 			admin = query.getSingleResult();
-			return admin != null ? true : false;
+			AdminLoginStatus status = new AdminLoginStatus();
+			status.setAdminId(admin.getAdminId());
+			status.setName(admin.getAdminName());
+			status.setStatusCode(StatusCode.SUCCESS);
+			status.setStatusMessage("Login Successful");
+			return status;
+			// return admin != null ? true : false;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 //			e.printStackTrace();
 			System.err.println(e.getMessage());
-			return false;
+			AdminLoginStatus status = new AdminLoginStatus();
+
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage("Login failed");
+			return status;
+			// return false;
+			// throw new ServiceException("Login failed");
 		}
 
 	}
@@ -315,8 +343,8 @@ public class CustomerDaoImpl implements CustomerDao {
 	@Transactional
 	public Admin addAdmin() {
 		Admin admin = new Admin();
-		admin.setAdminPassword("test123");
-		admin.setName("Ashwith");
+		admin.setAdminPassword("manasi@123");
+		admin.setName("Manasi");
 
 		em.persist(admin);
 		return admin;
@@ -325,25 +353,21 @@ public class CustomerDaoImpl implements CustomerDao {
 	@Transactional
 	public List<Customer> pendingRequest() {
 		String jpql = "select c from Customer c join Account a on c.custId=a.customer.custId and a.accountStatus=:acSt";
-		TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
-		query.setParameter("acSt", AccountStatus.Pending);
-		return query.getResultList();
+		return em.createQuery(jpql, Customer.class).setParameter("acSt", AccountStatus.Pending).getResultList();
 	}
 
 	@Transactional
-	public String updatePendingRequest(int customerId, String response) {
-		String jpql = "update Account a set a.accountStatus=:accSt where c.custId=:cId";
-		TypedQuery<Account> query = em.createQuery(jpql, Account.class);
-		query.setParameter("accSt", response);
-		query.setParameter("cId", customerId);
+	public String updatePendingRequest(int custId, AccountStatus response) {
+		String jpql = "update Account a set a.accountStatus=:accSt where a.customer.custId=:cId";
+//		em.createQuery(jpql).setParameter("accSt", response).setParameter("cId", custId).executeUpdate();
 
 		try {
-			Account acc = query.getSingleResult();
-			return "Account status changed";
+			em.createQuery(jpql).setParameter("accSt", response).setParameter("cId", custId).executeUpdate();
+			return "Account status changed.";
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return "Account status change failed";
+			throw new ServiceException("Account status change failed");
 		}
 
 //		Account acc = new Account();
@@ -414,6 +438,28 @@ public class CustomerDaoImpl implements CustomerDao {
 		} catch (Exception e) {
 			throw new ServiceException(e.getMessage());
 		}
-
 	}
+
+	@Override
+	public <T> T save(Object object) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T fetchById(Class<T> className, int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+//	@Transactional
+//	public <T> T save(Object object) {
+//		return (T) em.merge(object);
+//	}
+//
+//	@Transactional
+//	public <T> T fetchById(Class<T> className, int id) {
+//		return em.find(className, id);
+//
+//	}
 }

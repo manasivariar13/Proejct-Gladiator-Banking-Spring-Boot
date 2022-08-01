@@ -1,17 +1,25 @@
 package com.lti.service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.mail.Multipart;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.lti.dao.CustomerDao;
 import com.lti.dto.AccountSummaryDto;
+import com.lti.dto.AdminLoginStatus;
 import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
+import com.lti.dto.DocumentUploadDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.RegisterUserDto;
 import com.lti.dto.TopFiveTransactionDto;
@@ -126,36 +134,81 @@ public class CustomerServiceImpl implements CustomerService {
 			throw new ServiceException("Something went wrong.");
 		}
 	}
+	
+	public String documentUpload(MultipartFile file) {
+			String imageUploadLocation = "d:/uploads/";
+			String fileName = file.getOriginalFilename();
+//			String panFile = panCard.getOriginalFilename();
+			
+			String AlphaNumericString = "0123456789";
+			StringBuilder sb = new StringBuilder(6);
+
+			for (int i = 0; i < 6; i++) {
+				int index = (int) (AlphaNumericString.length() * Math.random());
+
+				sb.append(AlphaNumericString.charAt(index));
+			}
+			
+			String extension = fileName.split("\\.")[1];
+			
+			String targetFile = imageUploadLocation + fileName.split("\\.")[0] + sb.toString() + "." + extension;
+//			String targetPanFile = imageUploadLocation + panFile + sb.toString();
+			
+			try {
+				FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(targetFile));
+//				FileCopyUtils.copy(panCard.getInputStream(), new FileOutputStream(targetPanFile));
+//				return true;
+//				DocumentUploadDto dto = new DocumentUploadDto();
+//				dto.setAadharCardFileName(targetAadharFile);
+//				dto.setPanCardFileName(targetPanFile);
+				
+				return fileName.split("\\.")[0] + sb.toString() + "." + extension;
+			} catch (IOException e) {
+				e.printStackTrace();
+//				return e.getMessage();
+//				return false;
+				throw new ServiceException("Document upload failed!");
+			}
+			
+//			User user = userService.findUser(profilePicDto.getUserId());
+//			user.setProfilePic(fileName);
+//			UpdateUser updateUser = userService.UpdateProfile(user);
+//			if (updateUser != null)
+//				return true;
+//
+//			return false;
+//		return true;
+	}
 
 	public Customer searchCustomerById(int custId) {
 		try {
-			CustomerDetails details = new CustomerDetails();
-
+//			CustomerDetails details = new CustomerDetails();
+//
 			Customer cust = new Customer();
 			cust = dao.searchCustomerById(custId);
-
-			CustomerDto dto = new CustomerDto();
-
-			dto.setCustId(cust.getCustId());
-			dto.setAadhaarNo(cust.getAadhaarNo());
-			dto.setMobileNo(cust.getMobileNo());
-			dto.setEmailId(cust.getEmailId());
-			dto.setDateOfBirth(cust.getDateOfBirth());
-
-			dto.setIncomeId(cust.getIncome().getIncomeId());
-			dto.setIncomeSource(cust.getIncome().getIncomeSource());
-			dto.setGrossIncome(cust.getIncome().getGrossIncome());
-			dto.setIncomeSource(cust.getIncome().getIncomeSource());
-
-			dto.setAddressId(cust.getAddress().getAddressId());
-			dto.setAddressLine1(cust.getAddress().getAddressLine1());
-			dto.setAddressLine2(cust.getAddress().getAddressLine2());
-			dto.setLandmark(cust.getAddress().getLandmark());
-			dto.setCity(cust.getAddress().getCity());
-			dto.setPincode(cust.getAddress().getPincode());
-			dto.setState(cust.getAddress().getState());
-
-			details.setCustomer(dto);
+//
+//			CustomerDto dto = new CustomerDto();
+//
+//			dto.setCustId(cust.getCustId());
+//			dto.setAadhaarNo(cust.getAadhaarNo());
+//			dto.setMobileNo(cust.getMobileNo());
+//			dto.setEmailId(cust.getEmailId());
+//			dto.setDateOfBirth(cust.getDateOfBirth());
+//
+//			dto.setIncomeId(cust.getIncome().getIncomeId());
+//			dto.setIncomeSource(cust.getIncome().getIncomeSource());
+//			dto.setGrossIncome(cust.getIncome().getGrossIncome());
+//			dto.setIncomeSource(cust.getIncome().getIncomeSource());
+//
+//			dto.setAddressId(cust.getAddress().getAddressId());
+//			dto.setAddressLine1(cust.getAddress().getAddressLine1());
+//			dto.setAddressLine2(cust.getAddress().getAddressLine2());
+//			dto.setLandmark(cust.getAddress().getLandmark());
+//			dto.setCity(cust.getAddress().getCity());
+//			dto.setPincode(cust.getAddress().getPincode());
+//			dto.setState(cust.getAddress().getState());
+//
+//			details.setCustomer(dto);
 //		dto.setAddress(cust.getAddress());
 //		dto.setIncome(cust.getIncome());
 
@@ -281,7 +334,7 @@ public class CustomerServiceImpl implements CustomerService {
 		return dao.login(userId, password);
 	}
 
-	public boolean adminLogin(int adminId, String adminPassword) {
+	public AdminLoginStatus adminLogin(int adminId, String adminPassword) {
 		return dao.adminLogin(adminId, adminPassword);
 	}
 
@@ -289,17 +342,58 @@ public class CustomerServiceImpl implements CustomerService {
 		return dao.addAdmin();
 	}
 
-	public List<Customer> pendingRequest() {
-		return dao.pendingRequest();
-//		if (dao.pendingRequest().size() >= 1) {
+	public List<CustomerDto> pendingRequest() {
+//		return dao.pendingRequest();
+		if (dao.pendingRequest().size() >= 1) {
 //			return dao.pendingRequest();
-//		} else {
-//			throw new ServiceException("No pending requests.");
-//		}
+			List<CustomerDto> customerDtos = new ArrayList<>();
+			List<Customer> customers = new ArrayList<>();
+			customers = dao.pendingRequest();
+
+			for (Customer cust : customers) {
+				CustomerDto dto = new CustomerDto();
+
+				dto.setCustId(cust.getCustId());
+				dto.setName(cust.getName());
+				dto.setGender(cust.getGender());
+				dto.setPanCardNo(cust.getPanCardNo());
+				dto.setAadhaarNo(cust.getAadhaarNo());
+				dto.setMobileNo(cust.getMobileNo());
+				dto.setEmailId(cust.getEmailId());
+				dto.setDateOfBirth(cust.getDateOfBirth());
+
+				dto.setIncomeId(cust.getIncome().getIncomeId());
+				dto.setIncomeSource(cust.getIncome().getIncomeSource());
+				dto.setGrossIncome(cust.getIncome().getGrossIncome());
+				dto.setIncomeSource(cust.getIncome().getIncomeSource());
+				dto.setOccupationType(cust.getIncome().getOccupationType());
+
+				dto.setAddressId(cust.getAddress().getAddressId());
+				dto.setAddressLine1(cust.getAddress().getAddressLine1());
+				dto.setAddressLine2(cust.getAddress().getAddressLine2());
+				dto.setLandmark(cust.getAddress().getLandmark());
+				dto.setCity(cust.getAddress().getCity());
+				dto.setPincode(cust.getAddress().getPincode());
+				dto.setState(cust.getAddress().getState());
+
+				dto.setAccountStatus(cust.getAccount().get(0).getAccountStatus());
+				dto.setAccountType(cust.getAccount().get(0).getAccountType());
+
+				customerDtos.add(dto);
+			}
+			return customerDtos;
+
+		} else {
+			throw new ServiceException("No pending requests.");
+		}
 	}
 
-	public String updatePendingRequests(int customerId, String response) {
-		return dao.updatePendingRequest(customerId, response);
+	public String updatePendingRequests(int custId, AccountStatus response) {
+		try {
+			return dao.updatePendingRequest(custId, response);
+		} catch (Exception e) {
+			throw new ServiceException(e.getMessage());
+		}
 	}
 
 	public AccountStatus trackApplication(int custId) {

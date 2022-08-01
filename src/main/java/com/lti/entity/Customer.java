@@ -9,14 +9,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.lti.entity.Gender;
 
 @Entity
 @Table(name = "table_customer")
@@ -31,7 +28,7 @@ public class Customer {
 //	@Column(name = "login_password")
 //	private String customerPassword;
 
-	Gender gender;
+	private Gender gender;
 
 	@Column(name = "name")
 	private String name;
@@ -45,17 +42,23 @@ public class Customer {
 	@Column(name = "aadhaar_card_no")
 	private String aadhaarNo;
 
+	@Column(name = "aadhar_file")
+	private String aadhar;
+
 	@Column(name = "date_of_birth")
 	private LocalDate dateOfBirth;
 
 	@Column(name = "pan_card_no")
 	private String panCardNo;
 
+	@Column(name = "pan_file")
+	private String pan;
+
 //	@Column(name = "account_status")
 //	AccountStatus accountStatus;
-	
+
 	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
-	
+
 	private Address address;
 
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
@@ -63,6 +66,22 @@ public class Customer {
 
 	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
 	private Income income;
+
+	public String getAadhar() {
+		return aadhar;
+	}
+
+	public void setAadhar(String aadhar) {
+		this.aadhar = aadhar;
+	}
+
+	public String getPan() {
+		return pan;
+	}
+
+	public void setPan(String pan) {
+		this.pan = pan;
+	}
 
 	public List<Account> getAccount() {
 		return account;
@@ -79,22 +98,6 @@ public class Customer {
 	public void setIncome(Income income) {
 		this.income = income;
 	}
-
-//	public String getCustomerPassword() {
-//		return customerPassword;
-//	}
-//
-//	public void setCustomerPassword(String customerPassword) {
-//		this.customerPassword = customerPassword;
-//	}
-
-//	public AccountStatus getAccountStatus() {
-//		return accountStatus;
-//	}
-//
-//	public void setAccountStatus(AccountStatus accountStatus) {
-//		this.accountStatus = accountStatus;
-//	}
 
 	public int getCustId() {
 		return custId;

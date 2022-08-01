@@ -1,10 +1,11 @@
 package com.lti.controller;
 
-import java.util.HashMap;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import com.lti.dto.BeneficiaryAccountDto;
 import com.lti.dto.ChangePasswordDto;
 import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
+import com.lti.dto.DocumentUploadDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.FundTransferDto;
 import com.lti.dto.LoginDto;
@@ -36,10 +38,7 @@ import com.lti.dto.TopFiveTransactionsStatus;
 import com.lti.dto.TrackApplicationDto;
 import com.lti.dto.UserLoginStatus;
 import com.lti.dto.ViewAllBeneficiariesDto;
-import com.lti.entity.Account;
-import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
-import com.lti.entity.Transaction;
 import com.lti.entity.User;
 import com.lti.exception.ServiceException;
 import com.lti.service.CustomerService;
@@ -108,14 +107,32 @@ public class CustomerController {
 		String message = customerService.deleteBeneficiary(beneficiaryId);
 		return message;
 	}
+	
+	@PostMapping(value="/documentUpload")
+	public Status documentUpload(DocumentUploadDto dto) {
+		Status status = new Status();
+		try {
+			status.setStatusMessage(customerService.documentUpload(dto.getFile()));
+			status.setStatusCode(StatusCode.SUCCESS);
+		} catch(Exception e) {
+			status.setStatusCode(StatusCode.FAILURE);
+			status.setStatusMessage(e.getMessage());
+		}
+		return status;
+	}
 
 	@PostMapping(value = "/openAccount")
 	public OpenAccountDto openAccount(@RequestBody CustomerDto customerDto) {
 		try {
+//			DocumentUploadDto docDto = customerService.documentUpload(customerDto.getAadharCardFile(), customerDto.getPanCardFile());
+//			
+//			customerDto.setAadharFileName(docDto.getAadharCardFileName());
+//			customerDto.setPanFileName(docDto.getPanCardFileName());
+			
 			int custId = customerService.openAccount(customerDto);
 			OpenAccountDto dto = new OpenAccountDto();
 			dto.setStatusCode(StatusCode.SUCCESS);
-			dto.setStatusMessage("Registration Successful. Your customer ID is" + custId);
+			dto.setStatusMessage("Registration Successful. Your customer ID is " + custId);
 			dto.setCustId(custId);
 			return dto;
 
@@ -127,6 +144,27 @@ public class CustomerController {
 			return dto;
 		}
 	}
+
+//	@PostMapping("/pic-upload")
+//	public String upload(ProfilePicDto profilePicDto) {
+//		String imageUploadLocation = "d:/uploads/";
+//		String aadharFile = profilePicDto.getProfilePic().getOriginalFilename();
+//		String panFile = profilePicDto.getProfilePic().getOriginalFilename();
+//		String targetFile = imageUploadLocation + fileName;
+//		try {
+//			FileCopyUtils.copy(profilePicDto.getProfilePic().getInputStream(), new FileOutputStream(targetFile));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			return e.getMessage();
+//		}
+//		User user = userService.findUser(profilePicDto.getUserId());
+//		user.setProfilePic(fileName);
+//		UpdateUser updateUser = userService.UpdateProfile(user);
+//		if (updateUser != null)
+//			return "File uploaded";
+//
+//		return "Upload failed";
+//	}
 
 	@GetMapping("/searchCustomer/{custId}")
 	public CustomerDetails searchCustomerById(@PathVariable int custId) {
@@ -157,6 +195,9 @@ public class CustomerController {
 			dto.setCity(cust.getAddress().getCity());
 			dto.setPincode(cust.getAddress().getPincode());
 			dto.setState(cust.getAddress().getState());
+
+			dto.setAccountStatus(cust.getAccount().get(0).getAccountStatus());
+			dto.setAccountType(cust.getAccount().get(0).getAccountType());
 
 			CustomerDetails details = new CustomerDetails();
 			details.setCustomer(dto);
@@ -242,9 +283,9 @@ public class CustomerController {
 	public Status fundTransfer(@RequestBody FundTransferDto ftDto) {
 		try {
 			Status status = new Status();
-
+			System.out.println(ftDto.getTransactionType());
 			status.setStatusMessage(customerService.fundTransfer(ftDto.getFromAccount(), ftDto.getToAccount(),
-					ftDto.getAmount(), ftDto.getType(), ftDto.getPassword()));
+					ftDto.getAmount(), ftDto.getTransactionType(), ftDto.getPassword()));
 			status.setStatusCode(StatusCode.SUCCESS);
 			return status;
 		} catch (Exception e) {

@@ -18,18 +18,17 @@ public class FundTransferDto {
 		this.password = password;
 	}
 
-	public TransactionType getType() {
+	public TransactionType getTransactionType() {
 		return transactionType;
 	}
 
-	public void setType(TransactionType type) {
-		this.transactionType = type;
+	public void setTransactionType(TransactionType transactionType) {
+		this.transactionType = transactionType;
 	}
 
 	public void setAmount(Double amount) {
 		this.amount = amount;
 	}
-
 
 	public double getAmount() {
 		return amount;
@@ -54,5 +53,4 @@ public class FundTransferDto {
 	public void setToAccount(String toAccount) {
 		this.toAccount = toAccount;
 	}
-	
 }

@@ -37,6 +37,7 @@ public class Transaction {
 
 	@Column(name = "tx_date")
 	private LocalDate transactionDate;
+	
 
 	public int getTransactionId() {
 		return transactionId;
