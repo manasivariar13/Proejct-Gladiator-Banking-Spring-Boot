@@ -3,10 +3,9 @@ package com.lti.service;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.mail.Multipart;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,21 +16,17 @@ import com.lti.dao.CustomerDao;
 import com.lti.dto.AccountSummaryDto;
 import com.lti.dto.AdminLoginStatus;
 import com.lti.dto.BeneficiaryAccountDto;
-import com.lti.dto.CustomerDetails;
 import com.lti.dto.CustomerDto;
-import com.lti.dto.DocumentUploadDto;
 import com.lti.dto.ForgotPasswordDto;
 import com.lti.dto.RegisterUserDto;
 import com.lti.dto.TopFiveTransactionDto;
 import com.lti.dto.ViewAllBeneficiariesDto;
 import com.lti.entity.Account;
 import com.lti.entity.AccountStatus;
-import com.lti.entity.AccountType;
-import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
-import com.lti.entity.Income;
+import com.lti.entity.ErrorLogin;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
 import com.lti.entity.User;
@@ -134,42 +129,43 @@ public class CustomerServiceImpl implements CustomerService {
 			throw new ServiceException("Something went wrong.");
 		}
 	}
-	
+
 	public String documentUpload(MultipartFile file) {
-			String imageUploadLocation = "d:/uploads/";
-			String fileName = file.getOriginalFilename();
+		String imageUploadLocation = "D:/LTI/Project-Gladiator-Banking/src/assets/uploads/";
+
+		String fileName = file.getOriginalFilename();
 //			String panFile = panCard.getOriginalFilename();
-			
-			String AlphaNumericString = "0123456789";
-			StringBuilder sb = new StringBuilder(6);
 
-			for (int i = 0; i < 6; i++) {
-				int index = (int) (AlphaNumericString.length() * Math.random());
+		String AlphaNumericString = "0123456789";
+		StringBuilder sb = new StringBuilder(6);
 
-				sb.append(AlphaNumericString.charAt(index));
-			}
-			
-			String extension = fileName.split("\\.")[1];
-			
-			String targetFile = imageUploadLocation + fileName.split("\\.")[0] + sb.toString() + "." + extension;
+		for (int i = 0; i < 6; i++) {
+			int index = (int) (AlphaNumericString.length() * Math.random());
+
+			sb.append(AlphaNumericString.charAt(index));
+		}
+
+		String extension = fileName.split("\\.")[1];
+
+		String targetFile = imageUploadLocation + fileName.split("\\.")[0] + sb.toString() + "." + extension;
 //			String targetPanFile = imageUploadLocation + panFile + sb.toString();
-			
-			try {
-				FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(targetFile));
+
+		try {
+			FileCopyUtils.copy(file.getInputStream(), new FileOutputStream(targetFile));
 //				FileCopyUtils.copy(panCard.getInputStream(), new FileOutputStream(targetPanFile));
 //				return true;
 //				DocumentUploadDto dto = new DocumentUploadDto();
 //				dto.setAadharCardFileName(targetAadharFile);
 //				dto.setPanCardFileName(targetPanFile);
-				
-				return fileName.split("\\.")[0] + sb.toString() + "." + extension;
-			} catch (IOException e) {
-				e.printStackTrace();
+
+			return fileName.split("\\.")[0] + sb.toString() + "." + extension;
+		} catch (IOException e) {
+			e.printStackTrace();
 //				return e.getMessage();
 //				return false;
-				throw new ServiceException("Document upload failed!");
-			}
-			
+			throw new ServiceException("Document upload failed!");
+		}
+
 //			User user = userService.findUser(profilePicDto.getUserId());
 //			user.setProfilePic(fileName);
 //			UpdateUser updateUser = userService.UpdateProfile(user);
@@ -331,7 +327,23 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	public User login(int userId, String password) {
-		return dao.login(userId, password);
+		try {
+			System.err.println(dao.checkErrorLoginCount(userId));
+			if (dao.checkErrorLoginCount(userId))
+				return dao.login(userId, password);
+			else
+				throw new ServiceException("User login attempts limit exceeded, Retry login after 24 hours");
+		} catch (ServiceException serviceException) {
+			throw new ServiceException(serviceException.getMessage());
+		}
+		catch (Exception e) {
+			ErrorLogin errorLogin=new ErrorLogin();
+			errorLogin.setDateAndTime(LocalDateTime.now());
+			errorLogin.setUserId(String.valueOf(userId));
+//			errorLoginRepository.save(errorLogin);
+			dao.saveErrorData(errorLogin);
+			throw new ServiceException(e.getMessage());
+		}
 	}
 
 	public AdminLoginStatus adminLogin(int adminId, String adminPassword) {
@@ -357,7 +369,9 @@ public class CustomerServiceImpl implements CustomerService {
 				dto.setName(cust.getName());
 				dto.setGender(cust.getGender());
 				dto.setPanCardNo(cust.getPanCardNo());
+				dto.setPanFileName(cust.getPan());
 				dto.setAadhaarNo(cust.getAadhaarNo());
+				dto.setAadharFileName(cust.getAadhar());
 				dto.setMobileNo(cust.getMobileNo());
 				dto.setEmailId(cust.getEmailId());
 				dto.setDateOfBirth(cust.getDateOfBirth());

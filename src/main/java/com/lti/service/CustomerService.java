@@ -53,7 +53,7 @@ public interface CustomerService {
 //	Account services 
 
 	int openAccount(CustomerDto customerDto);
-	
+
 	String documentUpload(MultipartFile file);
 
 	Customer searchCustomerById(int custId);

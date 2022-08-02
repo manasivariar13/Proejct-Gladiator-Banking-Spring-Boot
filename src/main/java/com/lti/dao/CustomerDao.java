@@ -13,6 +13,7 @@ import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
+import com.lti.entity.ErrorLogin;
 import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
@@ -40,6 +41,10 @@ public interface CustomerDao {
 	boolean isCustomerExists(int accountNumber);
 
 	boolean isCustExists(int userId);
+	
+	boolean checkErrorLoginCount(int userId);
+	
+	void saveErrorData(ErrorLogin errLogin);
 
 	Customer addOrUpdateCustomer(Customer customer);
 
@@ -72,6 +77,8 @@ public interface CustomerDao {
 	String updatePendingRequest(int custId, AccountStatus response);
 
 	AccountStatus trackApplication(int custId);
+
+//	public String updateFailedAttempt(int failedAttempt, int userId);
 
 	<T> T save(Object object);
 

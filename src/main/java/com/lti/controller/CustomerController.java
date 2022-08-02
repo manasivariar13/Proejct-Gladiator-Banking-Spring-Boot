@@ -1,8 +1,12 @@
 package com.lti.controller;
 
+import java.awt.desktop.UserSessionEvent;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.FileCopyUtils;
@@ -107,14 +111,14 @@ public class CustomerController {
 		String message = customerService.deleteBeneficiary(beneficiaryId);
 		return message;
 	}
-	
-	@PostMapping(value="/documentUpload")
+
+	@PostMapping(value = "/documentUpload")
 	public Status documentUpload(DocumentUploadDto dto) {
 		Status status = new Status();
 		try {
 			status.setStatusMessage(customerService.documentUpload(dto.getFile()));
 			status.setStatusCode(StatusCode.SUCCESS);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			status.setStatusCode(StatusCode.FAILURE);
 			status.setStatusMessage(e.getMessage());
 		}
@@ -128,7 +132,7 @@ public class CustomerController {
 //			
 //			customerDto.setAadharFileName(docDto.getAadharCardFileName());
 //			customerDto.setPanFileName(docDto.getPanCardFileName());
-			
+
 			int custId = customerService.openAccount(customerDto);
 			OpenAccountDto dto = new OpenAccountDto();
 			dto.setStatusCode(StatusCode.SUCCESS);
@@ -424,5 +428,4 @@ public class CustomerController {
 
 		return dto;
 	}
-
 }

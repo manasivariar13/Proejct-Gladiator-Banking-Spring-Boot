@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
@@ -22,10 +23,13 @@ import com.lti.entity.Address;
 import com.lti.entity.Admin;
 import com.lti.entity.Beneficiary;
 import com.lti.entity.Customer;
+import com.lti.entity.ErrorLogin;
 import com.lti.entity.Income;
 import com.lti.entity.Transaction;
 import com.lti.entity.TransactionType;
 import com.lti.entity.User;
+import com.lti.exception.InsufficientFundsException;
+import com.lti.exception.LoginFailException;
 import com.lti.exception.ServiceException;
 import com.lti.entity.Gender;
 
@@ -259,6 +263,19 @@ public class CustomerDaoImpl implements CustomerDao {
 		Customer c = em.merge(customer);
 		return c;
 	}
+	
+	@Transactional
+	public boolean checkErrorLoginCount(int userId) {
+		return (Long) em
+					.createQuery("select count(e.userId) from ErrorLogin e where e.userId = :id and e.dateAndTime>= SYSDATE - 1")
+					.setParameter("id", String.valueOf(userId))
+					.getSingleResult() < 3 ? true : false;
+	}
+	
+	@Transactional
+	public void saveErrorData(ErrorLogin errLogin) {
+		em.persist(errLogin);
+	}
 
 	@Transactional
 	public User login(int userId, String password) {
@@ -273,7 +290,7 @@ public class CustomerDaoImpl implements CustomerDao {
 			return user;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			throw new ServiceException("Invalid User ID/password");
+			throw new LoginFailException("Invalid User ID/password");
 		}
 	}
 
@@ -452,14 +469,17 @@ public class CustomerDaoImpl implements CustomerDao {
 		return null;
 	}
 
-//	@Transactional
-//	public <T> T save(Object object) {
-//		return (T) em.merge(object);
+//	public String updateFailedAttempt(int failedAttempt, int userId) {
+//		String jpql = "update User u set u.failedAttempt = attempt where u.userId = uid";
+//		em.createQuery(jpql).setParameter("attempt", failedAttempt).setParameter("uid", userId).executeUpdate();
+//		return "Failed attempt!";
 //	}
-//
-//	@Transactional
-//	public <T> T fetchById(Class<T> className, int id) {
-//		return em.find(className, id);
-//
+
+//	public String increaseFailedAttempt(User user) {
+//		int newFailedAttempts = user.getFailedAttempt() + 1;
+//		dao.updateFailedAttempt(newFailedAttempts, user.getUserId());
+//		return "failed attempt increased";
 //	}
+
+//
 }
